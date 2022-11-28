@@ -1,3 +1,3 @@
 <template>
-  <header class="h-4rem">Header</header>
+  <header class="h-4rem bg-white">Header</header>
 </template>

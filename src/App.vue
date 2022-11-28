@@ -5,9 +5,9 @@ import MainPage from "./components/MainPage.vue";
 </script>
 
 <template>
-  <div class="flex h-screen">
+  <div class="flex h-screen p-4">
     <MenuLeft />
-    <div class="w-9">
+    <div class="w-9 ml-4">
       <Header />
       <MainPage />
     </div>
