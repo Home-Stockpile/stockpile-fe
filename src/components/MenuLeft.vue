@@ -5,7 +5,10 @@ const nodes = useTreeNodes().$state.items;
 </script>
 
 <template>
-  <nav class="left-menu bg-white">
+  <nav
+    class="left-menu bg-white"
+    :class="nodes.length > 14 ? 'overflow-y-scroll' : 'overflow-hidden'"
+  >
     <PanelMenu class="mt-3" :model="nodes" />
   </nav>
 </template>
@@ -15,15 +18,13 @@ const nodes = useTreeNodes().$state.items;
   border: none;
   background: #fff;
 }
-.p-panelmenu .p-panelmenu-content {
-}
 
 .p-panelmenu-header-content {
   border: none !important;
 }
 
 .left-menu {
-  height: 90%;
+  height: 100%;
   min-width: 400px;
   border-radius: 20px;
 }
