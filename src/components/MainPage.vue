@@ -1,11 +1,11 @@
 <template>
-  <main class="main bg-white p-3 mt-4">
+  <main class="main p-3 mt-4 border-round-xl">
     <RouterView />
   </main>
 </template>
 
 <style scoped>
 .main {
-  border-radius: 20px;
+  background-color: var(--surface-a);
 }
 </style>

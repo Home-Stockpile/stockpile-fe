@@ -5,7 +5,7 @@ import PrimeVue from "primevue/config";
 import "./assets/reset.css";
 import "./assets/base.css";
 
-import "primevue/resources/themes/bootstrap4-light-blue/theme.css";
+import "primevue/resources/themes/lara-light-purple/theme.css";
 import "primevue/resources/primevue.min.css";
 import "primeicons/primeicons.css";
 
