@@ -6,17 +6,15 @@ const nodes = useTreeNodes().$state.items;
 
 <template>
   <nav
-    class="left-menu border-round-xl"
+    class="left-menu w-3 p-1 border-round-xl h-full"
     :class="nodes.length > 14 ? 'overflow-y-scroll' : 'overflow-hidden'"
   >
     <PanelMenu class="border-0" :model="nodes" />
   </nav>
 </template>
 
-<style>
+<style scoped>
 .left-menu {
-  height: 100%;
-  min-width: 400px;
   background-color: var(--surface-a);
 }
 </style>

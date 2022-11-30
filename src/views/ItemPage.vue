@@ -29,6 +29,7 @@ function createBreadcrumbs(item: IItem, path: string[], breadcrumbs) {
     return createBreadcrumbs(item[arrIndex].items, path, breadcrumbs);
   }
 }
+
 onMounted(() => {
   breadcrumbs.value = createBreadcrumbs(
     items.items,
@@ -67,7 +68,7 @@ watch(
     aria-label="breadcrumb"
   />
 
-  <div class="flex align-items-center mt-2 ml-3">
+  <div class="flex align-items-center mt-3 mb-1 ml-3">
     <div>
       Tags:
       <Tag
@@ -80,13 +81,13 @@ watch(
         <Button
           @click="() => store.removeTag(currentItem.key, tag)"
           icon="pi pi-trash"
-          class="close-button p-button-rounded p-button-text"
+          class="close-button p-button-rounded p-button-text bg-red-700 text-white"
         />
       </Tag>
     </div>
     <Button
       icon="pi pi-plus"
-      class="add-button ml-3 p-button-rounded p-button-text"
+      class="ml-4 p-button-rounded p-button-text h-2rem w-2rem"
     />
   </div>
   <Toolbar class="border-0 px-4">
@@ -121,23 +122,21 @@ watch(
   </div>
 </template>
 
-<style>
+<style scoped>
 .p-menuitem-link {
   box-shadow: none !important;
 }
-.p-inputnumber-input {
-  width: 50px;
+.p-inputtext {
+  width: 3.5rem;
 }
 .close-button {
   position: absolute;
-  top: -12px;
-  right: -12px;
-  color: white !important;
-  background-color: #dc3545 !important ;
-  width: 20px !important;
-  height: 20px !important;
+  top: -0.9rem;
+  right: -0.9rem;
+  height: 0.5rem !important;
+  width: 1.5rem !important;
 }
-.close-button span {
+.close-button > span {
   font-size: 0.55rem;
 }
 </style>
