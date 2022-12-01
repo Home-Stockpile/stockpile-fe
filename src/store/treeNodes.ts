@@ -1,5 +1,7 @@
 import { defineStore } from "pinia";
 import type { IItem } from "../types/nodeTypes";
+import { nextNodeKey } from "@/functions/nextNodeKey";
+import { getItem } from "@/functions/getItem";
 
 export const useTreeNodes = defineStore("treeNodes", {
   state: (): IItem => {
@@ -11,10 +13,12 @@ export const useTreeNodes = defineStore("treeNodes", {
         {
           key: "1",
           label: "Kitchen",
+          to: "/section/1",
           items: [
             {
               key: "1_1",
               label: "Store",
+              to: "/section/1_1",
               items: [
                 {
                   key: "1_1_1",
@@ -39,10 +43,12 @@ export const useTreeNodes = defineStore("treeNodes", {
         {
           key: "2",
           label: "Garage",
+          to: "/section/2",
           items: [
             {
               key: "2_1",
               label: "Toolbox",
+              to: "/section/2_1",
               items: [
                 {
                   key: "2_1_1",
@@ -73,6 +79,7 @@ export const useTreeNodes = defineStore("treeNodes", {
             {
               key: "2_2",
               label: "Case",
+              to: "/section/2_2",
               items: [
                 {
                   key: "2_2_1",
@@ -96,5 +103,21 @@ export const useTreeNodes = defineStore("treeNodes", {
         },
       ],
     };
+  },
+  actions: {
+    addSection(name: string) {
+      const lastKey = this.$state.items[this.$state.items.length - 1].key;
+      this.$state = {
+        ...this.$state,
+        items: [
+          ...this.$state.items,
+          {
+            key: nextNodeKey(lastKey),
+            label: name,
+            to: "/section/" + nextNodeKey(lastKey),
+          },
+        ],
+      };
+    },
   },
 });
