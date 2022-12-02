@@ -8,8 +8,8 @@ const sectionName = ref("");
 const errorText = ref("");
 
 function checkName(name) {
-  if (name.length > 30) {
-    errorText.value = "Field can't be longer than 30 chars";
+  if (name.length > 25) {
+    errorText.value = "Field can't be longer than 25 chars";
     return false;
   } else if (!name.trim()) {
     errorText.value = "Field can't be empty";
