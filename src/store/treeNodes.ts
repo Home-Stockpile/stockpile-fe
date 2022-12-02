@@ -105,19 +105,13 @@ export const useTreeNodes = defineStore("treeNodes", {
     };
   },
   actions: {
-    addSection(name: string) {
+    addItem(item: IItem, rootItemPath: string[]) {
       const lastKey = this.$state.items[this.$state.items.length - 1].key;
-      this.$state = {
-        ...this.$state,
-        items: [
-          ...this.$state.items,
-          {
-            key: nextNodeKey(lastKey),
-            label: name,
-            to: "/section/" + nextNodeKey(lastKey),
-          },
-        ],
-      };
+      getItem(this.$state, rootItemPath).items.push({
+        key: nextNodeKey(lastKey),
+        label: item.label,
+        to: "/section/" + nextNodeKey(lastKey),
+      });
     },
   },
 });

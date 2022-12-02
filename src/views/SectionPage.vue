@@ -12,12 +12,13 @@ const store = useTreeNodes();
 const items = store.$state;
 const breadcrumbs = ref<IItem>([]);
 const currentItem = ref<IItem>({});
+
 const nestingLevel = computed(
   () => String(route.params.key).split("_").length < 2
 );
 
 onMounted(() => {
-  currentItem.value = getItem(items.items, String(route.params.key).split("_"));
+  currentItem.value = getItem(items, String(route.params.key).split("_"));
   breadcrumbs.value = createBreadcrumbs(
     items.items,
     String(route.params.key).split("_"),
@@ -28,10 +29,7 @@ onMounted(() => {
 watch(
   () => route.params.key,
   () => {
-    currentItem.value = getItem(
-      items.items,
-      String(route.params.key).split("_")
-    );
+    currentItem.value = getItem(items, String(route.params.key).split("_"));
     breadcrumbs.value = createBreadcrumbs(
       items.items,
       String(route.params.key).split("_"),
@@ -58,11 +56,9 @@ watch(
       <Button label="Add item" class="p-button-success" />
       <Button
         v-show="nestingLevel"
-        label="Add subitem"
+        label="Add subsection"
         class="p-button-success ml-4"
       />
     </template>
   </Toolbar>
 </template>
-
-<style scoped></style>

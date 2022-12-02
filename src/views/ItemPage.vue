@@ -14,21 +14,18 @@ const items = store.$state;
 const currentItem = ref<IItem>({});
 
 onMounted(() => {
+  currentItem.value = getItem(items, String(route.params.key).split("_"));
   breadcrumbs.value = createBreadcrumbs(
     items.items,
     String(route.params.key).split("_"),
     []
   );
-  currentItem.value = getItem(items.items, String(route.params.key).split("_"));
 });
 
 watch(
   () => route.params.key,
   () => {
-    currentItem.value = getItem(
-      items.items,
-      String(route.params.key).split("_")
-    );
+    currentItem.value = getItem(items, String(route.params.key).split("_"));
     breadcrumbs.value = createBreadcrumbs(
       items.items,
       String(route.params.key).split("_"),
