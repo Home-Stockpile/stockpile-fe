@@ -95,10 +95,10 @@ watch(
 </template>
 
 <style scoped>
-.p-menuitem-link {
+:deep(.p-menuitem-link) {
   box-shadow: none !important;
 }
-.p-inputtext {
+:deep(.p-inputtext) {
   width: 3.5rem;
 }
 .p-chip {
