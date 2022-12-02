@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useTreeNodes } from "@/store/treeNodes";
 import { ref } from "vue";
+const state = useTreeNodes().$state;
 
 const showPopup = ref(false);
 const sectionName = ref("");
@@ -14,7 +15,7 @@ function checkName(name) {
     errorText.value = "Field can't be empty";
     return false;
   } else if (
-    useTreeNodes().$state.items.find(
+    state.items.find(
       (item) => String(item.label).toLowerCase() === name.toLowerCase()
     )
   ) {
@@ -42,11 +43,7 @@ function toggleShowPopup() {
 <template>
   <nav
     class="left-menu w-25rem p-1 border-round-xl h-full"
-    :class="
-      useTreeNodes().$state.items.length > 14
-        ? 'overflow-y-scroll'
-        : 'overflow-hidden'
-    "
+    :class="state.items.length > 14 ? 'overflow-y-scroll' : 'overflow-hidden'"
   >
     <Button
       @click="toggleShowPopup"
@@ -54,7 +51,7 @@ function toggleShowPopup() {
       icon="pi pi-plus"
     />
 
-    <PanelMenu class="border-0 mt-2" :model="useTreeNodes().$state.items" />
+    <PanelMenu class="border-0 mt-2" :model="state.items" />
     <Dialog
       class="w-20rem"
       v-model:visible="showPopup"
