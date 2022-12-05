@@ -8,7 +8,7 @@ const showPopup = ref(false);
 const sectionName = ref("");
 const errorText = ref("");
 
-function checkName(name) {
+function checkName(name): boolean {
   if (name.length > 25) {
     errorText.value = "Field can't be longer than 25 chars";
     return false;

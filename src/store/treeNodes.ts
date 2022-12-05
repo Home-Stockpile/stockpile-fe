@@ -1,7 +1,6 @@
 import { defineStore } from "pinia";
 import type { IItem } from "../types/nodeTypes";
 import { nextNodeKey } from "@/functions/nextNodeKey";
-import { getItem } from "@/functions/getItem";
 
 export const useTreeNodes = defineStore("treeNodes", {
   state: (): IItem => {

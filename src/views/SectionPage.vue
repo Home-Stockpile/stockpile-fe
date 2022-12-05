@@ -2,9 +2,10 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useTreeNodes } from "@/store/treeNodes";
-import type { IItem } from "@/types/nodeTypes";
 import { getItem } from "@/functions/getItem";
 import { createBreadcrumbs } from "@/functions/createBreadcrumbs";
+
+import type { IItem } from "@/types/nodeTypes";
 
 const route = useRoute();
 const store = useTreeNodes();
