@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useTreeNodes } from "@/store/treeNodes";
 import { ref } from "vue";
+
 const state = useTreeNodes().$state;
 
 const showPopup = ref(false);
@@ -11,10 +12,12 @@ function checkName(name) {
   if (name.length > 25) {
     errorText.value = "Field can't be longer than 25 chars";
     return false;
-  } else if (!name.trim()) {
+  }
+  if (!name.trim()) {
     errorText.value = "Field can't be empty";
     return false;
-  } else if (
+  }
+  if (
     state.items.find(
       (item) => String(item.label).toLowerCase() === name.toLowerCase()
     )
