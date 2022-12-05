@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, onUpdated, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useTreeNodes } from "@/store/treeNodes";
-import type { IItem } from "@/types/nodeTypes";
 import { getItem } from "@/functions/getItem";
 import { createBreadcrumbs } from "@/functions/createBreadcrumbs";
+import AddItemDialog from "@/components/AddItemDialog.vue";
+import { DialogTypes } from "@/types/dialog";
+
+import type { IItem } from "@/types/nodeTypes";
 
 const route = useRoute();
 const store = useTreeNodes();
@@ -16,7 +19,17 @@ const currentItem = ref<IItem>({});
 const nestingLevel = computed(
   () => String(route.params.key).split("_").length < 2
 );
+const dialogVisibility = ref(false);
+const dialogType = ref(DialogTypes.section);
 
+function showDialog(type) {
+  console.log("show", type);
+  dialogType.value = type;
+  dialogVisibility.value = true;
+}
+function hideDialog() {
+  dialogVisibility.value = false;
+}
 onMounted(() => {
   currentItem.value = getItem(items, String(route.params.key).split("_"));
   breadcrumbs.value = createBreadcrumbs(
@@ -37,9 +50,20 @@ watch(
     );
   }
 );
+onMounted(() => {
+  console.log("Page1", dialogType.value);
+});
+onUpdated(() => {
+  console.log("Page", dialogType.value);
+});
 </script>
 
 <template>
+  <AddItemDialog
+    @hide-dialog="hideDialog"
+    :dialog-visibility="dialogVisibility"
+    :dialog-type="dialogType"
+  />
   <Breadcrumb
     class="overflow-x-scroll md:overflow-hidden"
     :home="items"
@@ -53,9 +77,14 @@ watch(
     </template>
 
     <template #end>
-      <Button label="Add item" class="p-button-success" />
+      <Button
+        label="Add item"
+        class="p-button-success"
+        @click="() => showDialog(DialogTypes.item)"
+      />
       <Button
         v-show="nestingLevel"
+        @click="() => showDialog(DialogTypes.section)"
         label="Add subsection"
         class="p-button-success ml-4"
       />

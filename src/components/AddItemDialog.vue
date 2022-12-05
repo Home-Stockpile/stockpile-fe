@@ -1,43 +1,92 @@
 <script setup lang="ts">
 import { useTreeNodes } from "@/store/treeNodes";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, onUpdated, ref, shallowRef } from "vue";
+import type Dialog from "primevue/dialog";
+import { DialogTypes } from "@/types/dialog";
+import { IItem } from "@/types/nodeTypes";
+import { MenuItemLabelType } from "primevue/menuitem";
 
-const props = defineProps({
-  dialogVisibility: Boolean,
-});
-const emit = defineEmits(["show-dialog"]);
-const sectionName = ref("");
-const errorText = ref("");
-
-function showDialog() {
-  errorText.value = "";
-  sectionName.value = "";
-  emit("show-dialog");
+interface IAddItemDialog {
+  dialogVisibility: boolean;
+  dialogType?: DialogTypes.section | DialogTypes.item;
 }
+const props = defineProps<IAddItemDialog>();
+const emit = defineEmits(["hide-dialog"]);
 
-function checkName(name: string): string {
+const sectionName = ref("");
+const errorLabel = ref("");
+const errorTag = ref("");
+
+const addForm = shallowRef<IItem>({
+  label: "adsad",
+  quantity: 2,
+  description: "adaw",
+  tags: [],
+});
+const newTag = ref("");
+const checkDialogType = () => {
+  return props.dialogType === DialogTypes.item;
+};
+function hideDialog() {
+  errorLabel.value = "";
+  addForm.value.label = "";
+  emit("hide-dialog");
+}
+function checkName(name) {
   if (name.length > 30) {
     return "Field can't be longer than 30 chars";
   } else if (!name.trim()) {
     return "Field can't be empty";
-  } else if (
-    useTreeNodes().$state.items.find(
-      (item) => String(item.label).toLowerCase() === name.toLowerCase()
-    )
-  ) {
-    return "Field with that name already exist";
   }
   return "";
 }
 
-function addSection() {
-  errorText.value = checkName(sectionName.value);
-  if (!errorText.value) {
-    useTreeNodes().addItem({ label: sectionName.value }, ["0"]);
-    showDialog();
+function checkLabel(label: string): string {
+  if (
+    useTreeNodes().$state.items.find(
+      (item) => String(item.label).toLowerCase() === label.toLowerCase()
+    )
+  ) {
+    return "Field with that name already exist";
   }
-  sectionName.value = "";
+  return checkName(label);
 }
+
+function checkTag(tag: string): string {
+  if (
+    addForm.value.tags.find(
+      (tag) => tag.toLowerCase() === newTag.value.toLowerCase()
+    )
+  ) {
+    return "Tag with that name already exists";
+  }
+  return checkName(tag);
+}
+function addSection() {
+  errorLabel.value = checkLabel(addForm.value.label);
+  if (!errorLabel.value) {
+    useTreeNodes().addItem({ label: addForm.value.label }, ["0"]);
+    hideDialog();
+  }
+  addForm.value.label = "";
+}
+function addTag() {
+  errorTag.value = checkTag(newTag.value);
+
+  if (!errorTag.value) {
+    addForm.value = {
+      ...addForm.value,
+      tags: [...addForm.value.tags, newTag.value],
+    };
+  }
+}
+
+onUpdated(() => {
+  console.log("Updated", addForm.value);
+});
+onMounted(() => {
+  console.log("Mounted", checkDialogType());
+});
 </script>
 
 <template>
@@ -50,17 +99,18 @@ function addSection() {
     <h3>Enter name of new section:</h3>
     <InputText
       placeholder="Name"
-      v-model.trim="sectionName"
+      v-model.trim="addForm.label"
       class="w-full mt-2"
-      :class="errorText && 'p-invalid'"
+      :class="errorLabel && 'p-invalid'"
       type="text"
     />
-    <small class="ml-2 text-xs text-red-600">{{ errorText }}</small>
-    <div v-show="">
+    <small class="ml-2 text-xs text-red-600">{{ errorLabel }}</small>
+    <div v-show="checkDialogType()">
       <h3 class="my-2">Quantity:</h3>
       <div class="grid p-fluid">
         <div class="field col-12 mb-0">
           <InputNumber
+            v-model="addForm.quantity"
             class="w-full"
             showButtons
             buttonLayout="horizontal"
@@ -74,11 +124,19 @@ function addSection() {
 
       <h3>Tags:</h3>
       <div class="p-inputgroup mt-2">
-        <InputText placeholder="Tag" /><Button label="Add tag" />
+        <InputText v-model="newTag" placeholder="Tag" />
+        <Button @click="addTag" label="Add tag" />
       </div>
+      <small class="ml-2 text-xs text-red-600">{{ errorTag }}</small>
       <div class="flex align-items-center mt-1 mb-1">
         <div>
-          <Chip label="tag" class="relative" removable />
+          <Chip
+            v-for="tag in addForm.tags"
+            :label="tag"
+            :key="tag"
+            class="relative"
+            removable
+          />
         </div>
       </div>
 
@@ -86,6 +144,7 @@ function addSection() {
       <Textarea
         placeholder="Add your description"
         class="w-full"
+        v-model="addForm.description"
         :autoResize="true"
         rows="5"
         cols="30"
@@ -96,7 +155,7 @@ function addSection() {
       <Button
         label="Reject"
         icon="pi pi-times"
-        @click="showDialog"
+        @click="hideDialog"
         class="p-button-text"
       />
       <Button label="Save" icon="pi pi-check" @click="addSection" autofocus />

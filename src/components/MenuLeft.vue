@@ -5,8 +5,11 @@ import { ref } from "vue";
 
 const dialogVisibility = ref(false);
 
+function hideDialog() {
+  dialogVisibility.value = false;
+}
 function showDialog() {
-  dialogVisibility.value = !dialogVisibility.value;
+  dialogVisibility.value = true;
 }
 </script>
 
@@ -25,9 +28,9 @@ function showDialog() {
       icon="pi pi-plus"
     />
     <AddItemDialog
-      @show-dialog="showDialog"
+      @hide-dialog="hideDialog"
       :dialog-visibility="dialogVisibility"
-      dialog-type="section"
+      dialog-type="SECTION"
     />
     <PanelMenu class="border-0 mt-2" :model="useTreeNodes().$state.items" />
   </nav>
