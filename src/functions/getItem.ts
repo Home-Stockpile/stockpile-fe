@@ -1,4 +1,4 @@
-import { IItem } from "@/types/nodeTypes";
+import { IItem } from "@/types/treeNodes";
 
 export function getItem(item: IItem, path: string[]): IItem {
   const arrIndex = Number(path.shift()) - 1;

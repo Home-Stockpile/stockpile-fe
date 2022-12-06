@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { useTreeNodes } from "@/store/treeNodes";
 import AddItemDialog from "@/components/AddItemDialog.vue";
+import { useTreeNodes } from "@/store/treeNodes";
 import { ref } from "vue";
 
 const dialogVisibility = ref(false);
+
+const tree = useTreeNodes().$state;
 
 function hideDialog() {
   dialogVisibility.value = false;
@@ -16,11 +18,7 @@ function showDialog() {
 <template>
   <nav
     class="left-menu w-25rem p-1 border-round-xl h-full"
-    :class="
-      useTreeNodes().$state.items.length > 14
-        ? 'overflow-y-scroll'
-        : 'overflow-hidden'
-    "
+    :class="tree.items.length > 14 ? 'overflow-y-scroll' : 'overflow-hidden'"
   >
     <Button
       @click="showDialog"
@@ -30,9 +28,9 @@ function showDialog() {
     <AddItemDialog
       @hide-dialog="hideDialog"
       :dialog-visibility="dialogVisibility"
-      dialog-type="SECTION"
+      dialog-type="ROOT_SECTION"
     />
-    <PanelMenu class="border-0 mt-2" :model="useTreeNodes().$state.items" />
+    <PanelMenu class="border-0 mt-2" :model="tree.items" />
   </nav>
 </template>
 

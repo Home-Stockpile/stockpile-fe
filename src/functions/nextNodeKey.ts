@@ -8,7 +8,6 @@ export function nextNodeKey(currentNodeKey: string): string {
       currentNodeKey.lastIndexOf("_") + 1
     );
   }
-
   if (firstPartOfKey) firstPartOfKey = firstPartOfKey + "_";
 
   return firstPartOfKey + String(Number(lastNumbersOfKey) + 1);

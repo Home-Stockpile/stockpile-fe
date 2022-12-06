@@ -2,21 +2,20 @@
 import { onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useTreeNodes } from "@/store/treeNodes";
-import type { IItem } from "@/types/nodeTypes";
+import type { IItem } from "@/types/treeNodes";
 import { getItem } from "@/functions/getItem";
 import { createBreadcrumbs } from "@/functions/createBreadcrumbs";
 
 const route = useRoute();
-const store = useTreeNodes();
-const breadcrumbs = ref<IItem>([]);
+const tree = useTreeNodes().$state;
 
-const items = store.$state;
+const breadcrumbs = ref<IItem[]>([]);
 const currentItem = ref<IItem>({});
 
 onMounted(() => {
-  currentItem.value = getItem(items, String(route.params.key).split("_"));
+  currentItem.value = getItem(tree, String(route.params.key).split("_"));
   breadcrumbs.value = createBreadcrumbs(
-    items.items,
+    tree.items,
     String(route.params.key).split("_"),
     []
   );
@@ -25,9 +24,9 @@ onMounted(() => {
 watch(
   () => route.params.key,
   () => {
-    currentItem.value = getItem(items, String(route.params.key).split("_"));
+    currentItem.value = getItem(tree, String(route.params.key).split("_"));
     breadcrumbs.value = createBreadcrumbs(
-      items.items,
+      tree.items,
       String(route.params.key).split("_"),
       []
     );
@@ -38,7 +37,7 @@ watch(
 <template>
   <Breadcrumb
     class="overflow-x-scroll md:overflow-hidden"
-    :home="items"
+    :home="tree"
     :model="breadcrumbs"
     aria-label="breadcrumb"
   />

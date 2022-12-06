@@ -1,92 +1,145 @@
 <script setup lang="ts">
 import { useTreeNodes } from "@/store/treeNodes";
-import { computed, onMounted, onUpdated, ref, shallowRef } from "vue";
-import type Dialog from "primevue/dialog";
+import { reactive, ref } from "vue";
+import { useRoute } from "vue-router";
 import { DialogTypes } from "@/types/dialog";
-import { IItem } from "@/types/nodeTypes";
-import { MenuItemLabelType } from "primevue/menuitem";
+import { IItem } from "@/types/treeNodes";
+import type Dialog from "primevue/dialog";
+import { getItem } from "@/functions/getItem";
 
 interface IAddItemDialog {
   dialogVisibility: boolean;
-  dialogType?: DialogTypes.section | DialogTypes.item;
+  dialogType?: DialogTypes.section | DialogTypes.item | DialogTypes.root;
 }
 const props = defineProps<IAddItemDialog>();
 const emit = defineEmits(["hide-dialog"]);
+const tree = useTreeNodes();
+const route = useRoute();
+const newTag = ref("");
 
-const sectionName = ref("");
-const errorLabel = ref("");
-const errorTag = ref("");
+const formErrors = reactive({
+  errorLabel: "",
+  errorTag: "",
+  errorQuantity: "",
+  errorDescription: "",
+});
 
-const addForm = shallowRef<IItem>({
-  label: "adsad",
-  quantity: 2,
-  description: "adaw",
+const addForm = reactive<IItem>({
+  label: "",
+  description: "",
+  quantity: 0,
   tags: [],
 });
-const newTag = ref("");
-const checkDialogType = () => {
-  return props.dialogType === DialogTypes.item;
-};
+
 function hideDialog() {
-  errorLabel.value = "";
-  addForm.value.label = "";
+  formErrors.errorLabel = "";
+  formErrors.errorTag = "";
+  formErrors.errorQuantity = "";
+  formErrors.errorDescription = "";
+
+  addForm.label = "";
+  addForm.description = "";
+  addForm.tags = [];
   emit("hide-dialog");
 }
-function checkName(name) {
-  if (name.length > 30) {
-    return "Field can't be longer than 30 chars";
-  } else if (!name.trim()) {
+
+function checkDialogType(): boolean {
+  return props.dialogType === DialogTypes.item;
+}
+
+function checkName(name: string, length: number): string {
+  if (name.length > length) {
+    return `Field can't be longer than ${length} chars`;
+  }
+  if (!name.trim() && length < 200) {
     return "Field can't be empty";
   }
   return "";
 }
 
-function checkLabel(label: string): string {
+function checkLabel(label: string, path): string {
+  const rootObj = getItem(tree.$state, path.split("_"));
   if (
-    useTreeNodes().$state.items.find(
+    rootObj.items.find(
       (item) => String(item.label).toLowerCase() === label.toLowerCase()
     )
   ) {
     return "Field with that name already exist";
   }
-  return checkName(label);
+  return checkName(label, 25);
 }
 
 function checkTag(tag: string): string {
   if (
-    addForm.value.tags.find(
-      (tag) => tag.toLowerCase() === newTag.value.toLowerCase()
-    )
+    addForm.tags.find((tag) => tag.toLowerCase() === newTag.value.toLowerCase())
   ) {
     return "Tag with that name already exists";
   }
-  return checkName(tag);
+  return checkName(tag, 15);
 }
-function addSection() {
-  errorLabel.value = checkLabel(addForm.value.label);
-  if (!errorLabel.value) {
-    useTreeNodes().addItem({ label: addForm.value.label }, ["0"]);
-    hideDialog();
-  }
-  addForm.value.label = "";
-}
-function addTag() {
-  errorTag.value = checkTag(newTag.value);
 
-  if (!errorTag.value) {
-    addForm.value = {
-      ...addForm.value,
-      tags: [...addForm.value.tags, newTag.value],
+function checkQuantity(quantity): string {
+  if (quantity > 100) {
+    return "Quantity can't be more then 100";
+  }
+  return "";
+}
+
+function getRootItemPath(): string {
+  if (props.dialogType === DialogTypes.root) {
+    return "0";
+  }
+  return String(route.params.key);
+}
+function addItem(newItem: IItem, routerPath: string) {
+  tree.addItem(newItem, getRootItemPath().split("_"), routerPath);
+  hideDialog();
+}
+
+function checkForm() {
+  formErrors.errorLabel = checkLabel(String(addForm.label), getRootItemPath());
+  let newItem: IItem = { label: addForm.label };
+
+  if (checkDialogType()) {
+    formErrors.errorQuantity = checkQuantity(addForm.quantity);
+    formErrors.errorDescription = checkName(addForm.description, 264);
+    newItem = {
+      ...newItem,
+      quantity: addForm.quantity,
+      tags: addForm.tags,
+      description: addForm.description,
     };
+    if (
+      !formErrors.errorLabel &&
+      !formErrors.errorQuantity &&
+      !formErrors.errorDescription
+    ) {
+      addItem(newItem, "/item/");
+      addForm.quantity = 0;
+      addForm.tags = [];
+      addForm.description = "";
+    }
+  } else {
+    newItem = { ...newItem, items: [] };
+    if (!formErrors.errorLabel) {
+      addItem(newItem, "/section/");
+    }
   }
 }
 
-onUpdated(() => {
-  console.log("Updated", addForm.value);
-});
-onMounted(() => {
-  console.log("Mounted", checkDialogType());
-});
+function addTag() {
+  formErrors.errorTag = checkTag(newTag.value);
+
+  if (!formErrors.errorTag) {
+    addForm.tags.push(newTag.value);
+    newTag.value = "";
+  }
+}
+
+function removeTag(tagForRemove) {
+  addForm.tags = addForm.tags.filter((tag) => tag !== tagForRemove);
+  formErrors.errorTag = "";
+}
 </script>
 
 <template>
@@ -101,10 +154,10 @@ onMounted(() => {
       placeholder="Name"
       v-model.trim="addForm.label"
       class="w-full mt-2"
-      :class="errorLabel && 'p-invalid'"
+      :class="formErrors.errorLabel && 'p-invalid'"
       type="text"
     />
-    <small class="ml-2 text-xs text-red-600">{{ errorLabel }}</small>
+    <small class="ml-2 text-xs text-red-600">{{ formErrors.errorLabel }}</small>
     <div v-show="checkDialogType()">
       <h3 class="my-2">Quantity:</h3>
       <div class="grid p-fluid">
@@ -112,6 +165,7 @@ onMounted(() => {
           <InputNumber
             v-model="addForm.quantity"
             class="w-full"
+            :class="formErrors.errorQuantity && 'p-invalid'"
             showButtons
             buttonLayout="horizontal"
             decrementButtonClass="p-button-danger"
@@ -119,21 +173,30 @@ onMounted(() => {
             incrementButtonIcon="pi pi-plus"
             decrementButtonIcon="pi pi-minus"
           />
+          <small class="ml-2 text-xs text-red-600">{{
+            formErrors.errorQuantity
+          }}</small>
         </div>
       </div>
 
       <h3>Tags:</h3>
       <div class="p-inputgroup mt-2">
-        <InputText v-model="newTag" placeholder="Tag" />
+        <InputText
+          v-model="newTag"
+          placeholder="Tag"
+          :class="formErrors.errorTag && 'p-invalid'"
+        />
         <Button @click="addTag" label="Add tag" />
       </div>
-      <small class="ml-2 text-xs text-red-600">{{ errorTag }}</small>
+      <small class="ml-2 text-xs text-red-600">{{ formErrors.errorTag }}</small>
       <div class="flex align-items-center mt-1 mb-1">
         <div>
           <Chip
             v-for="tag in addForm.tags"
             :label="tag"
             :key="tag"
+            :value="tag"
+            @remove="() => removeTag(tag)"
             class="relative"
             removable
           />
@@ -144,11 +207,15 @@ onMounted(() => {
       <Textarea
         placeholder="Add your description"
         class="w-full"
+        :class="formErrors.errorDescription && 'p-invalid'"
         v-model="addForm.description"
         :autoResize="true"
         rows="5"
         cols="30"
       />
+      <small class="ml-2 text-xs text-red-600">{{
+        formErrors.errorDescription
+      }}</small>
     </div>
 
     <template #footer>
@@ -158,7 +225,7 @@ onMounted(() => {
         @click="hideDialog"
         class="p-button-text"
       />
-      <Button label="Save" icon="pi pi-check" @click="addSection" autofocus />
+      <Button label="Save" icon="pi pi-check" @click="checkForm" autofocus />
     </template>
   </Dialog>
 </template>

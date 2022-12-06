@@ -7,14 +7,14 @@ import { createBreadcrumbs } from "@/functions/createBreadcrumbs";
 import AddItemDialog from "@/components/AddItemDialog.vue";
 import { DialogTypes } from "@/types/dialog";
 
-import type { IItem } from "@/types/nodeTypes";
+import type { IItem } from "@/types/treeNodes";
 
 const route = useRoute();
 const store = useTreeNodes();
 
-const items = store.$state;
-const breadcrumbs = ref<IItem>([]);
-const currentItem = ref<IItem>({});
+const state = store.$state;
+const breadcrumbs = ref<IItem[]>([]);
+const currentItem = ref<IItem>({ label: "" });
 
 const nestingLevel = computed(
   () => String(route.params.key).split("_").length < 2
@@ -23,7 +23,6 @@ const dialogVisibility = ref(false);
 const dialogType = ref(DialogTypes.section);
 
 function showDialog(type) {
-  console.log("show", type);
   dialogType.value = type;
   dialogVisibility.value = true;
 }
@@ -31,9 +30,9 @@ function hideDialog() {
   dialogVisibility.value = false;
 }
 onMounted(() => {
-  currentItem.value = getItem(items, String(route.params.key).split("_"));
+  currentItem.value = getItem(state, String(route.params.key).split("_"));
   breadcrumbs.value = createBreadcrumbs(
-    items.items,
+    state.items,
     String(route.params.key).split("_"),
     []
   );
@@ -42,20 +41,14 @@ onMounted(() => {
 watch(
   () => route.params.key,
   () => {
-    currentItem.value = getItem(items, String(route.params.key).split("_"));
+    currentItem.value = getItem(state, String(route.params.key).split("_"));
     breadcrumbs.value = createBreadcrumbs(
-      items.items,
+      state.items,
       String(route.params.key).split("_"),
       []
     );
   }
 );
-onMounted(() => {
-  console.log("Page1", dialogType.value);
-});
-onUpdated(() => {
-  console.log("Page", dialogType.value);
-});
 </script>
 
 <template>
@@ -66,7 +59,7 @@ onUpdated(() => {
   />
   <Breadcrumb
     class="overflow-x-scroll md:overflow-hidden"
-    :home="items"
+    :home="state"
     :model="breadcrumbs"
     aria-label="breadcrumb"
   />
