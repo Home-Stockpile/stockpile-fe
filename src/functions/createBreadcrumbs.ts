@@ -1,4 +1,4 @@
-import { IItem } from "@/types/nodeTypes";
+import { IItem } from "@/types/treeNodes";
 
 export function createBreadcrumbs(
   item: IItem,

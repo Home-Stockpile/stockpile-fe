@@ -5,7 +5,7 @@ import { useTreeNodes } from "@/store/treeNodes";
 import { getItem } from "@/functions/getItem";
 import { createBreadcrumbs } from "@/functions/createBreadcrumbs";
 
-import type { IItem } from "@/types/nodeTypes";
+import type { IItem } from "@/types/treeNodes";
 
 const route = useRoute();
 const store = useTreeNodes();
