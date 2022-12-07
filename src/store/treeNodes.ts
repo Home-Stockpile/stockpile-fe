@@ -9,10 +9,13 @@ export const useTreeNodes = defineStore("treeNodes", {
       key: "0",
       to: "/",
       icon: "pi pi-home",
+      defaultIcon:
+        "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/SCP_Foundation_%28emblem%29.svg/1200px-SCP_Foundation_%28emblem%29.svg.png",
       items: [
         {
           key: "1",
           label: "Kitchen",
+          icon: "https://media.istockphoto.com/photos/blue-sky-and-white-clouds-background-picture-id825778252?b=1&k=20&m=825778252&s=612x612&w=0&h=C2j1HeXd5swrFsvrBqN9GIUmewXPSERRg9quVii3prM=",
           to: "/section/1",
           items: [
             {
