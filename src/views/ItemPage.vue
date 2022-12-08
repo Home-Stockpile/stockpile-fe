@@ -2,7 +2,10 @@
 import { onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useTreeNodes } from "@/store/treeNodes";
-import type { IItem } from "@/types/nodeTypes";
+import { getItem } from "@/functions/getItem";
+import { createBreadcrumbs } from "@/functions/createBreadcrumbs";
+
+import type { IItem } from "@/types/treeNodes";
 
 const route = useRoute();
 const store = useTreeNodes();
@@ -11,46 +14,22 @@ const breadcrumbs = ref<IItem>([]);
 const items = store.$state;
 const currentItem = ref<IItem>({});
 
-function getCurrentEvent(item: IItem, path: string[]): IItem {
-  const arrIndex = Number(path.shift()) - 1;
-  if (path.length === 0) {
-    return item[arrIndex];
-  } else {
-    return getCurrentEvent(item[arrIndex].items, path);
-  }
-}
-
-function createBreadcrumbs(item: IItem, path: string[], breadcrumbs) {
-  const arrIndex = Number(path.shift()) - 1;
-  breadcrumbs = [...breadcrumbs, item[arrIndex]];
-  if (path.length === 0) {
-    return breadcrumbs;
-  } else {
-    return createBreadcrumbs(item[arrIndex].items, path, breadcrumbs);
-  }
-}
-
 onMounted(() => {
   breadcrumbs.value = createBreadcrumbs(
     items.items,
     String(route.params.key).split("_"),
     []
   );
-  currentItem.value = getCurrentEvent(
-    items.items,
-    String(route.params.key).split("_")
-  );
-  console.log(breadcrumbs.value);
+  currentItem.value = getItem(items.items, String(route.params.key).split("_"));
 });
 
 watch(
   () => route.params.key,
   () => {
-    currentItem.value = getCurrentEvent(
+    currentItem.value = getItem(
       items.items,
       String(route.params.key).split("_")
     );
-
     breadcrumbs.value = createBreadcrumbs(
       items.items,
       String(route.params.key).split("_"),
@@ -71,19 +50,13 @@ watch(
   <div class="flex align-items-center mt-3 mb-1 ml-3">
     <div>
       Tags:
-      <Tag
+      <Chip
         v-for="tag in currentItem.tags"
         :key="tag"
-        value="Tag"
+        :label="tag"
         class="ml-3 relative"
-      >
-        <span>{{ tag }}</span>
-        <Button
-          @click="() => store.removeTag(currentItem.key, tag)"
-          icon="pi pi-trash"
-          class="close-button p-button-rounded p-button-text bg-red-700 text-white"
-        />
-      </Tag>
+        removable
+      />
     </div>
     <Button
       icon="pi pi-plus"
@@ -129,14 +102,8 @@ watch(
 :deep(.p-inputtext) {
   width: 3.5rem;
 }
-.close-button {
-  position: absolute;
-  top: -0.9rem;
-  right: -0.9rem;
-  height: 0.5rem !important;
-  width: 1.5rem !important;
-}
-.close-button > span {
-  font-size: 0.55rem;
+.p-chip {
+  background-color: var(--primary-color);
+  color: var(--surface-a);
 }
 </style>
