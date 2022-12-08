@@ -7,6 +7,8 @@ import { IItem } from "@/types/treeNodes";
 const dialogVisibility = ref(false);
 const tree = useTreeNodes().$state;
 const searchQuery = ref("");
+const searchQueryError = ref("");
+const searchResult = ref([]);
 
 function hideDialog() {
   dialogVisibility.value = false;
@@ -14,27 +16,47 @@ function hideDialog() {
 function showDialog() {
   dialogVisibility.value = true;
 }
-function findElement() {
-  console.log(searchItem(tree));
+function checkSearchQuery(query) {
+  if (!query.trim()) {
+    return "Field can't be empty";
+  }
+  return "";
 }
 
-function searchItem(element: IItem): IItem | null {
+function findElement() {
+  searchQueryError.value = checkSearchQuery(searchQuery.value);
+  if (!searchQueryError.value) {
+    searchResult.value = searchItem(tree, []);
+    if (!searchResult.value.length) {
+      searchQueryError.value = "No results";
+    }
+  }
+}
+
+function searchItem(element: IItem, searchResult: IItem[]): IItem[] {
   if (
     element.label &&
-    String(element.label).toLowerCase().includes(searchQuery.value)
+    String(element.label)
+      .toLowerCase()
+      .includes(searchQuery.value.toLowerCase())
   ) {
-    console.log(element);
+    searchResult.push(element);
   }
 
-  if (element.items !== undefined) {
-    let result: IItem | null = null;
-
-    for (let i = 0; result === null && i < element.items.length; i++) {
-      result = searchItem(element.items[i]);
+  if (element.items) {
+    let item = null;
+    for (let i = 0; i < element.items.length; i++) {
+      item = searchItem(element.items[i], searchResult);
     }
-    return result;
+
+    return item;
   }
-  return null;
+
+  return searchResult;
+}
+
+function resetResult() {
+  searchResult.value = [];
 }
 </script>
 
@@ -49,19 +71,30 @@ function searchItem(element: IItem): IItem | null {
       icon="pi pi-plus"
     />
     <div class="p-inputgroup mt-1">
-      <InputText v-model="searchQuery" placeholder="Keyword" />
+      <InputText
+        :class="searchQueryError && 'p-invalid'"
+        v-model.trim="searchQuery"
+        @input="resetResult"
+        placeholder="Keyword"
+      />
       <Button
         @click="findElement"
         icon="pi pi-search"
         class="p-button-warning"
       />
     </div>
+    <small class="text-xs text-red-600" :class="searchQueryError && 'ml-2'">{{
+      searchQueryError
+    }}</small>
     <AddItemDialog
       @hide-dialog="hideDialog"
       :dialog-visibility="dialogVisibility"
       dialog-type="ROOT_SECTION"
     />
-    <PanelMenu class="border-0 mt-2" :model="tree.items">
+    <PanelMenu
+      class="border-0 mt-2"
+      :model="searchResult.length && searchQuery ? searchResult : tree.items"
+    >
       <template #item="{ item }">
         <RouterLink
           class="w-full flex align-items-center py-2 px-2"
@@ -83,7 +116,7 @@ function searchItem(element: IItem): IItem | null {
 </template>
 
 <style scoped>
-.p-button-outlined {
+:deep(.p-button-warning, .p-button-outlined) {
   box-shadow: none !important;
 }
 .left-menu {
