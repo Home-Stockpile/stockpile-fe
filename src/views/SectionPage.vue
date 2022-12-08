@@ -1,26 +1,38 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, onUpdated, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useTreeNodes } from "@/store/treeNodes";
 import { getItem } from "@/functions/getItem";
 import { createBreadcrumbs } from "@/functions/createBreadcrumbs";
+import AddItemDialog from "@/components/AddItemDialog.vue";
+import { DialogTypes } from "@/types/dialog";
 
 import type { IItem } from "@/types/treeNodes";
 
 const route = useRoute();
 const store = useTreeNodes();
 
-const items = store.$state;
-const breadcrumbs = ref<IItem>([]);
-const currentItem = ref<IItem>({});
+const state = store.$state;
+const breadcrumbs = ref<IItem[]>([]);
+const currentItem = ref<IItem>({ label: "" });
+
 const nestingLevel = computed(
   () => String(route.params.key).split("_").length < 2
 );
+const dialogVisibility = ref(false);
+const dialogType = ref(DialogTypes.section);
 
+function showDialog(type) {
+  dialogType.value = type;
+  dialogVisibility.value = true;
+}
+function hideDialog() {
+  dialogVisibility.value = false;
+}
 onMounted(() => {
-  currentItem.value = getItem(items.items, String(route.params.key).split("_"));
+  currentItem.value = getItem(state, String(route.params.key).split("_"));
   breadcrumbs.value = createBreadcrumbs(
-    items.items,
+    state.items,
     String(route.params.key).split("_"),
     []
   );
@@ -29,12 +41,9 @@ onMounted(() => {
 watch(
   () => route.params.key,
   () => {
-    currentItem.value = getItem(
-      items.items,
-      String(route.params.key).split("_")
-    );
+    currentItem.value = getItem(state, String(route.params.key).split("_"));
     breadcrumbs.value = createBreadcrumbs(
-      items.items,
+      state.items,
       String(route.params.key).split("_"),
       []
     );
@@ -43,9 +52,14 @@ watch(
 </script>
 
 <template>
+  <AddItemDialog
+    @hide-dialog="hideDialog"
+    :dialog-visibility="dialogVisibility"
+    :dialog-type="dialogType"
+  />
   <Breadcrumb
     class="overflow-x-scroll md:overflow-hidden"
-    :home="items"
+    :home="state"
     :model="breadcrumbs"
     aria-label="breadcrumb"
   />
@@ -56,14 +70,17 @@ watch(
     </template>
 
     <template #end>
-      <Button label="Add item" class="p-button-success" />
+      <Button
+        label="Add item"
+        class="p-button-success"
+        @click="() => showDialog(DialogTypes.item)"
+      />
       <Button
         v-show="nestingLevel"
-        label="Add subitem"
+        @click="() => showDialog(DialogTypes.section)"
+        label="Add subsection"
         class="p-button-success ml-4"
       />
     </template>
   </Toolbar>
 </template>
-
-<style scoped></style>

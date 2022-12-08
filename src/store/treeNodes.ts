@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import type { IItem } from "../types/treeNodes";
 import { nextNodeKey } from "@/functions/nextNodeKey";
+import { getItem } from "@/functions/getItem";
 
 export const useTreeNodes = defineStore("treeNodes", {
   state: (): IItem => {
@@ -104,19 +105,21 @@ export const useTreeNodes = defineStore("treeNodes", {
     };
   },
   actions: {
-    addSection(name: string) {
-      const lastKey = this.$state.items[this.$state.items.length - 1].key;
-      this.$state = {
-        ...this.$state,
-        items: [
-          ...this.$state.items,
-          {
-            key: nextNodeKey(lastKey),
-            label: name,
-            to: "/section/" + nextNodeKey(lastKey),
-          },
-        ],
-      };
+    addItem(item: IItem, rootItemPath: string[], routerPath) {
+      const path = rootItemPath.slice(0).join("_");
+      const rootItem = getItem(this.$state, rootItemPath);
+
+      let lastKey = "";
+      if (!rootItem.items.length) {
+        lastKey = path + "_0";
+      } else {
+        lastKey = rootItem.items[rootItem.items.length - 1].key;
+      }
+      rootItem.items.push({
+        ...item,
+        key: nextNodeKey(lastKey),
+        to: routerPath + nextNodeKey(lastKey),
+      });
     },
   },
 });
