@@ -10,9 +10,8 @@ import { DialogTypes } from "@/types/dialog";
 import type { IItem } from "@/types/treeNodes";
 
 const route = useRoute();
-const store = useTreeNodes();
+const tree = useTreeNodes().$state;
 
-const state = store.$state;
 const breadcrumbs = ref<IItem[]>([]);
 const currentItem = ref<IItem>({ label: "" });
 
@@ -30,9 +29,9 @@ function hideDialog() {
   dialogVisibility.value = false;
 }
 onMounted(() => {
-  currentItem.value = getItem(state, String(route.params.key).split("_"));
+  currentItem.value = getItem(tree, String(route.params.key).split("_"));
   breadcrumbs.value = createBreadcrumbs(
-    state.items,
+    tree.items,
     String(route.params.key).split("_"),
     []
   );
@@ -41,9 +40,9 @@ onMounted(() => {
 watch(
   () => route.params.key,
   () => {
-    currentItem.value = getItem(state, String(route.params.key).split("_"));
+    currentItem.value = getItem(tree, String(route.params.key).split("_"));
     breadcrumbs.value = createBreadcrumbs(
-      state.items,
+      tree.items,
       String(route.params.key).split("_"),
       []
     );
@@ -59,14 +58,22 @@ watch(
   />
   <Breadcrumb
     class="overflow-x-scroll md:overflow-hidden"
-    :home="state"
+    :home="tree"
     :model="breadcrumbs"
     aria-label="breadcrumb"
   />
 
-  <Toolbar class="mt-3 border-0">
+  <Toolbar class="mt-3 border-0 p-2">
     <template #start>
-      <div class="mt-2">{{ currentItem.label }}</div>
+      <div class="flex align-items-center">
+        <Image
+          :src="currentItem.icon || tree.defaultIcon"
+          width="32"
+          height="32"
+          imageClass="border-circle inline mr-2"
+        />
+        <div>{{ currentItem.label }}</div>
+      </div>
     </template>
 
     <template #end>

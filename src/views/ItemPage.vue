@@ -58,9 +58,18 @@ watch(
       class="ml-4 p-button-rounded p-button-text h-2rem w-2rem"
     />
   </div>
-  <Toolbar class="border-0 px-4">
+  <Toolbar class="border-0 p-2">
     <template #start>
-      <div class="mt-2">{{ currentItem.label }}</div>
+      <div class="flex align-items-center">
+        <Image
+          :src="currentItem.icon || tree.defaultIcon"
+          width="32"
+          height="32"
+          imageClass="border-circle inline mr-2"
+        />
+        <div>{{ currentItem.label }}</div>
+      </div>
+
       <InputNumber
         class="ml-4"
         :model-value="currentItem.quantity"

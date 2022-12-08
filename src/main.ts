@@ -22,6 +22,8 @@ import Textarea from "primevue/textarea";
 import Breadcrumb from "primevue/breadcrumb";
 import Dialog from "primevue/dialog";
 import InputText from "primevue/inputtext";
+import Image from "primevue/image";
+import FileUpload from "primevue/fileupload";
 
 import App from "./App.vue";
 import router from "./router";
@@ -43,5 +45,7 @@ app.component("Textarea", Textarea);
 app.component("Breadcrumb", Breadcrumb);
 app.component("Dialog", Dialog);
 app.component("InputText", InputText);
+app.component("Image", Image);
+app.component("FileUpload", FileUpload);
 
 app.mount("#app");

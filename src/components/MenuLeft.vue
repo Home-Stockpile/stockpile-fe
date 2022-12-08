@@ -4,7 +4,6 @@ import { useTreeNodes } from "@/store/treeNodes";
 import { ref } from "vue";
 
 const dialogVisibility = ref(false);
-
 const tree = useTreeNodes().$state;
 
 function hideDialog() {
@@ -30,7 +29,24 @@ function showDialog() {
       :dialog-visibility="dialogVisibility"
       dialog-type="ROOT_SECTION"
     />
-    <PanelMenu class="border-0 mt-2" :model="tree.items" />
+    <PanelMenu class="border-0 mt-2" :model="tree.items">
+      <template #item="{ item }">
+        <RouterLink
+          class="w-full flex align-items-center py-2 px-2"
+          :to="item.to"
+        >
+          <Image
+            :src="item.icon || tree.defaultIcon"
+            width="32"
+            height="32"
+            imageClass="border-circle inline"
+          />
+          <div class="ml-2">
+            {{ item.label }}
+          </div>
+        </RouterLink>
+      </template>
+    </PanelMenu>
   </nav>
 </template>
 

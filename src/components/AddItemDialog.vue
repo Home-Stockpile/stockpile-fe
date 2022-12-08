@@ -6,6 +6,7 @@ import { DialogTypes } from "@/types/dialog";
 import { IItem } from "@/types/treeNodes";
 import type Dialog from "primevue/dialog";
 import { getItem } from "@/functions/getItem";
+import { FileUploadSelectEvent } from "primevue/fileupload";
 
 interface IAddItemDialog {
   dialogVisibility: boolean;
@@ -28,6 +29,7 @@ const addForm = reactive<IItem>({
   label: "",
   description: "",
   quantity: 0,
+  icon: "",
   tags: [],
 });
 
@@ -98,7 +100,7 @@ function addItem(newItem: IItem, routerPath: string) {
 
 function checkForm() {
   formErrors.errorLabel = checkLabel(String(addForm.label), getRootItemPath());
-  let newItem: IItem = { label: addForm.label };
+  let newItem: IItem = { label: addForm.label, icon: addForm.icon };
 
   if (checkDialogType()) {
     formErrors.errorQuantity = checkQuantity(addForm.quantity);
@@ -136,9 +138,16 @@ function addTag() {
   }
 }
 
-function removeTag(tagForRemove) {
+function removeTag(tagForRemove: string) {
   addForm.tags = addForm.tags.filter((tag) => tag !== tagForRemove);
   formErrors.errorTag = "";
+}
+
+function addIcon(e: FileUploadSelectEvent) {
+  addForm.icon = e.files[0].objectURL;
+}
+function removeIcon() {
+  addForm.icon = "";
 }
 </script>
 
@@ -157,6 +166,7 @@ function removeTag(tagForRemove) {
       :class="formErrors.errorLabel && 'p-invalid'"
       type="text"
     />
+
     <small class="ml-2 text-xs text-red-600">{{ formErrors.errorLabel }}</small>
     <div v-show="checkDialogType()">
       <h3 class="my-2">Quantity:</h3>
@@ -217,7 +227,21 @@ function removeTag(tagForRemove) {
         formErrors.errorDescription
       }}</small>
     </div>
+    <h3 class="my-2">Download your icon:</h3>
 
+    <FileUpload
+      class="p-2"
+      @select="addIcon"
+      @remove="removeIcon"
+      @clear="removeIcon"
+      :multiple="false"
+      accept="image/*"
+      :maxFileSize="1000000"
+    >
+      <template #empty>
+        <p>Drag and drop files to here to upload.</p>
+      </template>
+    </FileUpload>
     <template #footer>
       <Button
         label="Reject"
@@ -229,3 +253,12 @@ function removeTag(tagForRemove) {
     </template>
   </Dialog>
 </template>
+
+<style scoped>
+:deep(.p-fileupload-file-name) {
+  width: 10rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+</style>
