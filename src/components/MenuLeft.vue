@@ -2,15 +2,39 @@
 import AddItemDialog from "@/components/AddItemDialog.vue";
 import { useTreeNodes } from "@/store/treeNodes";
 import { ref } from "vue";
+import { IItem } from "@/types/treeNodes";
 
 const dialogVisibility = ref(false);
 const tree = useTreeNodes().$state;
+const searchQuery = ref("");
 
 function hideDialog() {
   dialogVisibility.value = false;
 }
 function showDialog() {
   dialogVisibility.value = true;
+}
+function findElement() {
+  console.log(searchItem(tree));
+}
+
+function searchItem(element: IItem): IItem | null {
+  if (
+    element.label &&
+    String(element.label).toLowerCase().includes(searchQuery.value)
+  ) {
+    console.log(element);
+  }
+
+  if (element.items !== undefined) {
+    let result: IItem | null = null;
+
+    for (let i = 0; result === null && i < element.items.length; i++) {
+      result = searchItem(element.items[i]);
+    }
+    return result;
+  }
+  return null;
 }
 </script>
 
@@ -24,6 +48,14 @@ function showDialog() {
       class="p-button-outlined w-full h-4rem"
       icon="pi pi-plus"
     />
+    <div class="p-inputgroup mt-1">
+      <InputText v-model="searchQuery" placeholder="Keyword" />
+      <Button
+        @click="findElement"
+        icon="pi pi-search"
+        class="p-button-warning"
+      />
+    </div>
     <AddItemDialog
       @hide-dialog="hideDialog"
       :dialog-visibility="dialogVisibility"
