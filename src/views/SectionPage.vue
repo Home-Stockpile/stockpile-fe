@@ -13,7 +13,7 @@ const route = useRoute();
 const tree = useTreeNodes().$state;
 
 const breadcrumbs = ref<IItem[]>([]);
-const currentItem = ref<IItem>({ label: "" });
+const currentItem = ref<IItem>({});
 
 const nestingLevel = computed(
   () => String(route.params.key).split("_").length < 2
