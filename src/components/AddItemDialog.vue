@@ -100,7 +100,11 @@ function addItem(newItem: IItem, routerPath: string) {
 
 function checkForm() {
   formErrors.errorLabel = checkLabel(String(addForm.label), getRootItemPath());
-  let newItem: IItem = { label: addForm.label, icon: addForm.icon };
+  let newItem: IItem = {
+    label: addForm.label,
+    icon: addForm.icon,
+    favorites: false,
+  };
 
   if (checkDialogType()) {
     formErrors.errorQuantity = checkQuantity(addForm.quantity);

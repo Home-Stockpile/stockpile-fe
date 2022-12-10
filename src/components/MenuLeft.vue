@@ -8,7 +8,9 @@ const dialogVisibility = ref(false);
 const tree = useTreeNodes().$state;
 const searchQuery = ref("");
 const searchQueryError = ref("");
-const searchResult = ref([]);
+const options = ref({ all: "All", favorites: "Favorites" });
+const isFavoriteCategory = ref(false);
+const panelMenu = ref<IItem[]>(tree.items);
 
 function hideDialog() {
   dialogVisibility.value = false;
@@ -26,8 +28,8 @@ function checkSearchQuery(query) {
 function findElement() {
   searchQueryError.value = checkSearchQuery(searchQuery.value);
   if (!searchQueryError.value) {
-    searchResult.value = searchItem(tree, []);
-    if (!searchResult.value.length) {
+    panelMenu.value = searchItem(tree, []);
+    if (!panelMenu.value.length) {
       searchQueryError.value = "No results";
     }
   }
@@ -56,7 +58,41 @@ function searchItem(element: IItem, searchResult: IItem[]): IItem[] {
 }
 
 function resetResult() {
-  searchResult.value = [];
+  if (!searchQuery.value) {
+    panelMenu.value = tree.items;
+  }
+}
+function searchFavorites(element: IItem, searchResult: IItem[]): IItem[] {
+  if (element.favorites) {
+    searchResult.push(element);
+  }
+
+  if (element.items) {
+    let item = null;
+    for (let i = 0; i < element.items.length; i++) {
+      item = searchFavorites(element.items[i], searchResult);
+    }
+
+    return item;
+  }
+
+  return searchResult;
+}
+
+function switchFavorites(e) {
+  if (e.target.innerHTML === options.value.favorites) {
+    isFavoriteCategory.value = true;
+    panelMenu.value = searchFavorites(tree, []);
+  } else {
+    isFavoriteCategory.value = false;
+    panelMenu.value = tree.items;
+  }
+  searchQueryError.value = "";
+  searchQuery.value = "";
+}
+
+function addTag(key) {
+  useTreeNodes().addToFavorites(key.split("_"));
 }
 </script>
 
@@ -91,13 +127,29 @@ function resetResult() {
       :dialog-visibility="dialogVisibility"
       dialog-type="ROOT_SECTION"
     />
-    <PanelMenu
-      class="border-0 mt-2"
-      :model="searchResult.length && searchQuery ? searchResult : tree.items"
+    <div class="mt-2 cursor-pointer select-none">
+      <span
+        @click="switchFavorites"
+        :class="!isFavoriteCategory && 'underline'"
+        >{{ options.all }}</span
+      >
+      <span> | </span>
+      <span
+        @click="switchFavorites"
+        :class="isFavoriteCategory && 'underline'"
+        >{{ options.favorites }}</span
+      >
+    </div>
+    <div
+      class="mt-2 text-red-600"
+      v-if="isFavoriteCategory && !panelMenu.length"
     >
+      No favs
+    </div>
+    <PanelMenu class="border-0 mt-2" :model="panelMenu">
       <template #item="{ item }">
         <RouterLink
-          class="w-full flex align-items-center py-2 px-2"
+          class="w-full flex align-items-center py-2 px-2 relative"
           :to="item.to"
         >
           <Image
@@ -109,6 +161,15 @@ function resetResult() {
           <div class="ml-2">
             {{ item.label }}
           </div>
+          <div
+            @click.stop.prevent="() => addTag(item.key)"
+            class="absolute border-circle border-1 heart"
+          >
+            <i
+              class="pi pi-heart text-color p-2 border-circle"
+              :class="item.favorites ? 'bg-pink-300 ' : 'bg-white'"
+            ></i>
+          </div>
         </RouterLink>
       </template>
     </PanelMenu>
@@ -116,10 +177,19 @@ function resetResult() {
 </template>
 
 <style scoped>
-:deep(.p-button-warning, .p-button-outlined) {
+:deep(.p-button, .p-button-warning, .p-button-outlined) {
   box-shadow: none !important;
 }
+:deep(.p-selectbutton > .p-button.p-component) {
+  border-radius: 50%;
+  padding: 0.5rem;
+}
+
 .left-menu {
   background-color: var(--surface-a);
+}
+
+.heart {
+  right: 1rem;
 }
 </style>
