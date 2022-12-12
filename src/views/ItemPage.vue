@@ -3,18 +3,17 @@ import { onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useTreeNodes } from "@/store/treeNodes";
 import type { IItem } from "@/types/treeNodes";
-import { getItem } from "@/functions/getItem";
-import { createBreadcrumbs } from "@/functions/createBreadcrumbs";
 
 const route = useRoute();
-const tree = useTreeNodes().$state;
+const state = useTreeNodes();
+const tree = state.getTree;
 
 const breadcrumbs = ref<IItem[]>([]);
 const currentItem = ref<IItem>({});
 
 onMounted(() => {
-  currentItem.value = getItem(tree, String(route.params.key).split("_"));
-  breadcrumbs.value = createBreadcrumbs(
+  currentItem.value = state.getItem(tree, String(route.params.key).split("_"));
+  breadcrumbs.value = state.getBreadcrumbs(
     tree.items,
     String(route.params.key).split("_"),
     []
@@ -24,8 +23,11 @@ onMounted(() => {
 watch(
   () => route.params.key,
   () => {
-    currentItem.value = getItem(tree, String(route.params.key).split("_"));
-    breadcrumbs.value = createBreadcrumbs(
+    currentItem.value = state.getItem(
+      tree,
+      String(route.params.key).split("_")
+    );
+    breadcrumbs.value = state.getBreadcrumbs(
       tree.items,
       String(route.params.key).split("_"),
       []

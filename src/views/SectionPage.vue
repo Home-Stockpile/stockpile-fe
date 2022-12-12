@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { computed, onMounted, onUpdated, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useTreeNodes } from "@/store/treeNodes";
-import { getItem } from "@/functions/getItem";
-import { createBreadcrumbs } from "@/functions/createBreadcrumbs";
 import AddItemDialog from "@/components/AddItemDialog.vue";
 import { DialogTypes } from "@/types/dialog";
 
 import type { IItem } from "@/types/treeNodes";
 
 const route = useRoute();
-const tree = useTreeNodes().$state;
+
+const treeStore = useTreeNodes();
+const tree = treeStore.getTree;
 
 const breadcrumbs = ref<IItem[]>([]);
 const currentItem = ref<IItem>({});
@@ -29,8 +29,11 @@ function hideDialog() {
   dialogVisibility.value = false;
 }
 onMounted(() => {
-  currentItem.value = getItem(tree, String(route.params.key).split("_"));
-  breadcrumbs.value = createBreadcrumbs(
+  currentItem.value = treeStore.getItem(
+    tree,
+    String(route.params.key).split("_")
+  );
+  breadcrumbs.value = treeStore.getBreadcrumbs(
     tree.items,
     String(route.params.key).split("_"),
     []
@@ -40,8 +43,11 @@ onMounted(() => {
 watch(
   () => route.params.key,
   () => {
-    currentItem.value = getItem(tree, String(route.params.key).split("_"));
-    breadcrumbs.value = createBreadcrumbs(
+    currentItem.value = treeStore.getItem(
+      tree,
+      String(route.params.key).split("_")
+    );
+    breadcrumbs.value = treeStore.getBreadcrumbs(
       tree.items,
       String(route.params.key).split("_"),
       []

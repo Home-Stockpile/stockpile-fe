@@ -1,7 +1,6 @@
 import { defineStore } from "pinia";
 import type { IItem } from "../types/treeNodes";
 import { nextNodeKey } from "@/functions/nextNodeKey";
-import { getItem } from "@/functions/getItem";
 
 export const useTreeNodes = defineStore("treeNodes", {
   state: (): IItem => {
@@ -119,7 +118,7 @@ export const useTreeNodes = defineStore("treeNodes", {
   actions: {
     addItem(item: IItem, rootItemPath: string[], routerPath) {
       const path = rootItemPath.slice(0).join("_");
-      const rootItem = getItem(this.$state, rootItemPath);
+      const rootItem = this.getItem(this.$state, rootItemPath);
 
       let lastKey = "";
       if (!rootItem.items.length) {
@@ -134,9 +133,37 @@ export const useTreeNodes = defineStore("treeNodes", {
       });
     },
     addToFavorites(rootItemPath: string[]) {
-      const rootItem = getItem(this.$state, rootItemPath);
+      const rootItem = this.getItem(this.$state, rootItemPath);
       rootItem.favorites = !rootItem.favorites;
-      console.log(rootItem);
     },
+  },
+  getters: {
+    getTree: (state) => state,
+
+    getItem: () =>
+      function getItem(item: IItem, path: string[]): IItem {
+        const arrIndex = Number(path.shift()) - 1;
+        if (arrIndex === -1) {
+          return item;
+        }
+        if (!path.length) {
+          return item.items[arrIndex];
+        }
+        return getItem(item.items[arrIndex], path);
+      },
+
+    getBreadcrumbs: () =>
+      function getBreadcrumbs(
+        item: IItem,
+        path: string[],
+        breadcrumbs: IItem[]
+      ): IItem[] {
+        const arrIndex = Number(path.shift()) - 1;
+        breadcrumbs = [...breadcrumbs, item[arrIndex]];
+        if (!path.length) {
+          return breadcrumbs;
+        }
+        return getBreadcrumbs(item[arrIndex].items, path, breadcrumbs);
+      },
   },
 });

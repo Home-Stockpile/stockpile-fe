@@ -1,16 +1,20 @@
 <script setup lang="ts">
 import AddItemDialog from "@/components/AddItemDialog.vue";
 import { useTreeNodes } from "@/store/treeNodes";
-import { ref } from "vue";
+import { onMounted, ref } from "vue";
 import { IItem } from "@/types/treeNodes";
+import { useAllTags } from "@/store/tags";
 
+const tree = useTreeNodes().getTree;
+const allTags = useAllTags().getTags;
 const dialogVisibility = ref(false);
-const tree = useTreeNodes().$state;
 const searchQuery = ref("");
 const searchQueryError = ref("");
 const options = ref({ all: "All", favorites: "Favorites" });
 const isFavoriteCategory = ref(false);
 const panelMenu = ref<IItem[]>(tree.items);
+const filterVisible = ref(false);
+const selectedTag = ref();
 
 function hideDialog() {
   dialogVisibility.value = false;
@@ -62,6 +66,7 @@ function resetResult() {
     panelMenu.value = tree.items;
   }
 }
+
 function searchFavorites(element: IItem, searchResult: IItem[]): IItem[] {
   if (element.favorites) {
     searchResult.push(element);
@@ -94,6 +99,38 @@ function switchFavorites(e) {
 function addTag(key) {
   useTreeNodes().addToFavorites(key.split("_"));
 }
+
+function onFilter() {
+  filterVisible.value = !filterVisible.value;
+}
+
+function filterByTag(element: IItem, searchResult: IItem[]): IItem[] {
+  if (element.tags && element.tags.find((tag) => tag === selectedTag.value)) {
+    searchResult.push(element);
+  }
+
+  if (element.items) {
+    let item = null;
+    for (let i = 0; i < element.items.length; i++) {
+      item = filterByTag(element.items[i], searchResult);
+    }
+
+    return item;
+  }
+
+  return searchResult;
+}
+
+function onApplyFilters() {
+  if (selectedTag.value) {
+    panelMenu.value = filterByTag(tree, []);
+    onFilter();
+  }
+}
+function onResetFilters() {
+  panelMenu.value = tree.items;
+  selectedTag.value = "";
+}
 </script>
 
 <template>
@@ -113,6 +150,7 @@ function addTag(key) {
         @input="resetResult"
         placeholder="Keyword"
       />
+      <Button @click="onFilter" icon="pi pi-filter" class="p-button-error" />
       <Button
         @click="findElement"
         icon="pi pi-search"
@@ -122,17 +160,43 @@ function addTag(key) {
     <small class="text-xs text-red-600" :class="searchQueryError && 'ml-2'">{{
       searchQueryError
     }}</small>
+
+    <Sidebar v-model:visible="filterVisible" :baseZIndex="2">
+      <h3>Filter by Tag:</h3>
+      <Dropdown
+        v-model="selectedTag"
+        :options="allTags"
+        class="mt-2 w-full"
+        optionLabel="name"
+        optionValue="name"
+        placeholder="Select a Tag"
+      />
+      <div class="flex justify-content-between mt-4">
+        <Button
+          label="Reset"
+          icon="pi pi-times"
+          @click="onResetFilters"
+          class="p-button-text ml-2"
+        />
+        <Button
+          label="Apply"
+          icon="pi pi-check"
+          @click="onApplyFilters"
+          autofocus
+          class="mr-2"
+        />
+      </div>
+    </Sidebar>
+
     <AddItemDialog
       @hide-dialog="hideDialog"
       :dialog-visibility="dialogVisibility"
       dialog-type="ROOT_SECTION"
     />
     <div class="mt-2 cursor-pointer select-none">
-      <span
-        @click="switchFavorites"
-        :class="!isFavoriteCategory && 'underline'"
-        >{{ options.all }}</span
-      >
+      <span @click="switchFavorites" :class="!isFavoriteCategory && 'underline'"
+        >{{ options.all }}
+      </span>
       <span> | </span>
       <span
         @click="switchFavorites"
