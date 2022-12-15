@@ -5,8 +5,8 @@ import { useRoute } from "vue-router";
 import { DialogTypes } from "@/types/dialog";
 import { IItem } from "@/types/treeNodes";
 import type Dialog from "primevue/dialog";
-import { getItem } from "@/functions/getItem";
 import { FileUploadSelectEvent } from "primevue/fileupload";
+import { useAllTags } from "@/store/tags";
 
 interface IAddItemDialog {
   dialogVisibility: boolean;
@@ -14,7 +14,12 @@ interface IAddItemDialog {
 }
 const props = defineProps<IAddItemDialog>();
 const emit = defineEmits(["hide-dialog"]);
-const tree = useTreeNodes();
+
+const treeStore = useTreeNodes();
+const tree = treeStore.getTree;
+const allTagsStore = useAllTags();
+const allTags = allTagsStore.getTags;
+
 const route = useRoute();
 const newTag = ref("");
 
@@ -60,7 +65,7 @@ function checkName(name: string, length: number): string {
 }
 
 function checkLabel(label: string, path): string {
-  const rootObj = getItem(tree.$state, path.split("_"));
+  const rootObj = treeStore.getItem(tree, path.split("_"));
   if (
     rootObj.items.find(
       (item) => String(item.label).toLowerCase() === label.toLowerCase()
@@ -94,13 +99,17 @@ function getRootItemPath(): string {
   return String(route.params.key);
 }
 function addItem(newItem: IItem, routerPath: string) {
-  tree.addItem(newItem, getRootItemPath().split("_"), routerPath);
+  treeStore.addItem(newItem, getRootItemPath().split("_"), routerPath);
   hideDialog();
 }
 
 function checkForm() {
   formErrors.errorLabel = checkLabel(String(addForm.label), getRootItemPath());
-  let newItem: IItem = { label: addForm.label, icon: addForm.icon };
+  let newItem: IItem = {
+    label: addForm.label,
+    icon: addForm.icon,
+    favorites: false,
+  };
 
   if (checkDialogType()) {
     formErrors.errorQuantity = checkQuantity(addForm.quantity);
@@ -130,6 +139,7 @@ function checkForm() {
 }
 
 function addTag() {
+  allTagsStore.addTag(newTag.value);
   formErrors.errorTag = checkTag(newTag.value);
 
   if (!formErrors.errorTag) {
@@ -139,6 +149,7 @@ function addTag() {
 }
 
 function removeTag(tagForRemove: string) {
+  allTagsStore.removeTag(tagForRemove);
   addForm.tags = addForm.tags.filter((tag) => tag !== tagForRemove);
   formErrors.errorTag = "";
 }
