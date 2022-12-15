@@ -25,6 +25,8 @@ import InputText from "primevue/inputtext";
 import Image from "primevue/image";
 import FileUpload from "primevue/fileupload";
 import SelectButton from "primevue/selectbutton";
+import Sidebar from "primevue/sidebar";
+import Dropdown from "primevue/dropdown";
 
 import App from "./App.vue";
 import router from "./router";
@@ -49,5 +51,7 @@ app.component("InputText", InputText);
 app.component("Image", Image);
 app.component("FileUpload", FileUpload);
 app.component("SelectButton", SelectButton);
+app.component("Sidebar", Sidebar);
+app.component("Dropdown", Dropdown);
 
 app.mount("#app");
