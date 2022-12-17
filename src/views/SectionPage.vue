@@ -6,6 +6,7 @@ import AddItemDialog from "@/components/AddItemDialog.vue";
 import { DialogTypes } from "@/types/dialog";
 
 import type { IItem } from "@/types/treeNodes";
+import DefaultPage from "@/views/DefaultPage.vue";
 
 const route = useRoute();
 
@@ -62,38 +63,42 @@ watch(
     :dialog-visibility="dialogVisibility"
     :dialog-type="dialogType"
   />
-  <Breadcrumb
-    class="overflow-x-scroll md:overflow-hidden"
-    :home="tree"
-    :model="breadcrumbs"
-    aria-label="breadcrumb"
-  />
 
-  <Toolbar class="mt-3 border-0 p-2">
-    <template #start>
-      <div class="flex align-items-center">
-        <Image
-          :src="currentItem.icon || tree.defaultIcon"
-          width="32"
-          height="32"
-          imageClass="border-circle inline mr-2"
+  <div v-if="currentItem">
+    <Breadcrumb
+      class="overflow-x-scroll md:overflow-hidden"
+      :home="tree"
+      :model="breadcrumbs"
+      aria-label="breadcrumb"
+    />
+
+    <Toolbar class="mt-3 border-0 p-2">
+      <template #start>
+        <div class="flex align-items-center">
+          <Image
+            :src="currentItem.icon || tree.defaultIcon"
+            width="32"
+            height="32"
+            imageClass="border-circle inline mr-2"
+          />
+          <div>{{ currentItem.label }}</div>
+        </div>
+      </template>
+
+      <template #end>
+        <Button
+          label="Add item"
+          class="p-button-success"
+          @click="() => showDialog(DialogTypes.item)"
         />
-        <div>{{ currentItem.label }}</div>
-      </div>
-    </template>
-
-    <template #end>
-      <Button
-        label="Add item"
-        class="p-button-success"
-        @click="() => showDialog(DialogTypes.item)"
-      />
-      <Button
-        v-show="nestingLevel"
-        @click="() => showDialog(DialogTypes.section)"
-        label="Add subsection"
-        class="p-button-success ml-4"
-      />
-    </template>
-  </Toolbar>
+        <Button
+          v-show="nestingLevel"
+          @click="() => showDialog(DialogTypes.section)"
+          label="Add subsection"
+          class="p-button-success ml-4"
+        />
+      </template>
+    </Toolbar>
+  </div>
+  <DefaultPage v-else />
 </template>
