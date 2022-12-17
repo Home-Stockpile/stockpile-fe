@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AddItemDialog from "@/components/AddItemDialog.vue";
 import { useTreeNodes } from "@/store/treeNodes";
-import { onMounted, ref } from "vue";
+import { ref } from "vue";
 import { IItem } from "@/types/treeNodes";
 import { useAllTags } from "@/store/tags";
 
@@ -74,13 +74,11 @@ function searchFavorites(element: IItem, searchResult: IItem[]): IItem[] {
 
   if (element.items) {
     let item = null;
-    for (let i = 0; i < element.items.length; i++) {
-      item = searchFavorites(element.items[i], searchResult);
-    }
-
+    element.items.forEach(
+      (i) => (item = searchFavorites(i, searchResult) || searchResult)
+    );
     return item;
   }
-
   return searchResult;
 }
 
