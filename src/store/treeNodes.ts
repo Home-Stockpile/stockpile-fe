@@ -27,7 +27,7 @@ export const useTreeNodes = defineStore("treeNodes", {
                   key: "1_1_1",
                   label: "Fork",
                   description: "this is a fork",
-                  tags: ["Tag1", "Tag2", "Tag3"],
+                  tags: ["Tag1", "Tag3"],
                   quantity: 24,
                   to: `/item/1_1_1`,
                 },
@@ -35,7 +35,7 @@ export const useTreeNodes = defineStore("treeNodes", {
                   key: "1_1_2",
                   label: "Spoon",
                   description: "this is a spoon",
-                  tags: ["Tag1", "Tag2", "Tag3"],
+                  tags: ["Tag1"],
                   quantity: 14,
                   to: "/item/1_1_2",
                 },
@@ -60,7 +60,7 @@ export const useTreeNodes = defineStore("treeNodes", {
                   label: "Hummer",
                   favorites: true,
                   description: "this is a Hummer",
-                  tags: ["Tag1", "Tag2", "Tag3"],
+                  tags: ["Tag3"],
                   quantity: 1,
                   to: "/item/2_1_1",
                 },
@@ -69,7 +69,7 @@ export const useTreeNodes = defineStore("treeNodes", {
                   label: "Wrench 1",
                   favorites: false,
                   description: "this is a Wrench",
-                  tags: ["Tag1", "Tag2", "Tag3"],
+                  tags: ["Tag1", "Tag3"],
                   quantity: 1,
                   to: `/item/2_1_2`,
                 },
@@ -78,7 +78,7 @@ export const useTreeNodes = defineStore("treeNodes", {
                   label: "Flat screwdriwer",
                   favorites: false,
                   description: "this is a screwdriwer",
-                  tags: ["Tag1", "Tag2", "Tag3"],
+                  tags: ["Tag1", "Tag3"],
                   quantity: 4,
                   to: "/item/2_1_3",
                 },
@@ -95,7 +95,7 @@ export const useTreeNodes = defineStore("treeNodes", {
                   label: "Nuts",
                   favorites: true,
                   description: "this is Nuts",
-                  tags: ["Tag1", "Tag2", "Tag3"],
+                  tags: ["Tag3"],
                   quantity: 54,
                   to: "/item/2_2_1",
                 },
@@ -104,7 +104,7 @@ export const useTreeNodes = defineStore("treeNodes", {
                   label: "Bolts",
                   favorites: false,
                   description: "this is Bolts",
-                  tags: ["Tag1", "Tag2", "Tag3"],
+                  tags: ["Tag1", "Tag3"],
                   quantity: 31,
                   to: `/item/2_2_2`,
                 },
@@ -151,7 +151,21 @@ export const useTreeNodes = defineStore("treeNodes", {
         }
         return getItem(item.items[arrIndex], path);
       },
+    getFavorites: () =>
+      function getFavorites(element: IItem, searchResult: IItem[]): IItem[] {
+        if (element.favorites) {
+          searchResult.push(element);
+        }
 
+        if (element.items) {
+          let item = null;
+          element.items.forEach(
+            (i) => (item = getFavorites(i, searchResult) || searchResult)
+          );
+          return item;
+        }
+        return searchResult;
+      },
     getBreadcrumbs: () =>
       function getBreadcrumbs(
         item: IItem,

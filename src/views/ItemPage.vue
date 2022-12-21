@@ -106,9 +106,6 @@ watch(
 </template>
 
 <style scoped>
-:deep(.p-menuitem-link) {
-  box-shadow: none !important;
-}
 :deep(.p-inputtext) {
   width: 3.5rem;
 }
