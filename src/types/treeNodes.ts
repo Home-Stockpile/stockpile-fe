@@ -1,7 +1,8 @@
 import type { MenuItem } from "primevue/menuitem";
 
 export interface IItem extends MenuItem {
-  defaultIcon?: string;
+  defaultFolderIcon?: string;
+  defaultItemIcon?: string;
   description?: string;
   favorites?: boolean;
   tags?: string[];

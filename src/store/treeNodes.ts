@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import type { IItem } from "../types/treeNodes";
 import { nextNodeKey } from "@/functions/nextNodeKey";
+import { sortByType } from "@/functions/sortByType";
 
 export const useTreeNodes = defineStore("treeNodes", {
   state: (): IItem => {
@@ -8,7 +9,9 @@ export const useTreeNodes = defineStore("treeNodes", {
       key: "0",
       to: "/",
       icon: "pi pi-home",
-      defaultIcon:
+      defaultFolderIcon:
+        "https://www.iconpacks.net/icons/2/free-folder-icon-1449-thumb.png",
+      defaultItemIcon:
         "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/SCP_Foundation_%28emblem%29.svg/1200px-SCP_Foundation_%28emblem%29.svg.png",
       items: [
         {
@@ -131,6 +134,7 @@ export const useTreeNodes = defineStore("treeNodes", {
         key: nextNodeKey(lastKey),
         to: routerPath + nextNodeKey(lastKey),
       });
+      rootItem.items = sortByType(rootItem);
     },
     addToFavorites(rootItemPath: string[]) {
       const rootItem = this.getItem(this.$state, rootItemPath);
@@ -156,7 +160,6 @@ export const useTreeNodes = defineStore("treeNodes", {
         if (element.favorites) {
           searchResult.push(element);
         }
-
         if (element.items) {
           let item = null;
           element.items.forEach(

@@ -167,7 +167,10 @@ function changeFilters(value: IItem[], tag) {
           :to="item.to"
         >
           <Image
-            :src="item.icon || tree.defaultIcon"
+            :src="
+              item.icon ||
+              (item.items ? tree.defaultFolderIcon : tree.defaultItemIcon)
+            "
             width="32"
             height="32"
             imageClass="border-circle inline"

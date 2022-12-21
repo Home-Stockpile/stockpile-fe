@@ -33,7 +33,7 @@ function filterByTag(
   return searchResult;
 }
 
-function onApplyFilters() {
+function onApplyFilters(): void {
   let tagForSearch = selectedTag.value || selectedFavTag.value;
   if (tagForSearch) {
     emit("change-filters", filterByTag(tree, tagForSearch, []), tagForSearch);
@@ -42,13 +42,13 @@ function onApplyFilters() {
   }
 }
 
-function onResetFilters() {
+function onResetFilters(): void {
   emit("change-filters", null);
   selectedTag.value = "";
   selectedFavTag.value = "";
 }
 
-function setPrevFilterValue() {
+function setPrevFilterValue(): void {
   if (
     allTags
       .filter((tag) => tag.favorite)

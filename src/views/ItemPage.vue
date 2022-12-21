@@ -66,7 +66,7 @@ watch(
       <template #start>
         <div class="flex align-items-center">
           <Image
-            :src="currentItem.icon || tree.defaultIcon"
+            :src="currentItem.icon || tree.defaultItemIcon"
             width="32"
             height="32"
             imageClass="border-circle inline mr-2"
