@@ -1,27 +1,26 @@
 <script setup lang="ts">
 import { useTreeNodes } from "@/store/treeNodes";
-import { reactive, ref } from "vue";
+import { onMounted, onUpdated, reactive, ref } from "vue";
 import { useRoute } from "vue-router";
-import { DialogTypes } from "@/types/dialog";
+import { AddDialog, DialogTypes } from "@/types/dialog";
 import { IItem } from "@/types/treeNodes";
 import type Dialog from "primevue/dialog";
 import { FileUploadSelectEvent } from "primevue/fileupload";
-import { useAllTags } from "@/store/tag";
+import { ITag } from "@/types/tags";
 
 interface IAddItemDialog {
   dialogVisibility: boolean;
-  dialogType?: DialogTypes.section | DialogTypes.item | DialogTypes.root;
+  currentItem?: IItem;
+  dialogType?: AddDialog;
 }
 const props = defineProps<IAddItemDialog>();
 const emit = defineEmits(["hide-dialog"]);
 
 const treeStore = useTreeNodes();
 const tree = treeStore.getTree;
-const allTagsStore = useAllTags();
-const allTags = allTagsStore.getTags;
 
 const route = useRoute();
-const newTag = ref("");
+const newTagName = ref("");
 
 const formErrors = reactive({
   errorLabel: "",
@@ -38,7 +37,7 @@ const addForm = reactive<IItem>({
   tags: [],
 });
 
-function hideDialog() {
+function hideDialog(): void {
   formErrors.errorLabel = "";
   formErrors.errorTag = "";
   formErrors.errorQuantity = "";
@@ -67,6 +66,7 @@ function checkName(name: string, length: number): string {
 function checkLabel(label: string, path): string {
   const rootObj = treeStore.getItem(tree, path.split("_"));
   if (
+    !props.currentItem &&
     rootObj.items.find(
       (item) => String(item.label).toLowerCase() === label.toLowerCase()
     )
@@ -78,14 +78,16 @@ function checkLabel(label: string, path): string {
 
 function checkTag(tag: string): string {
   if (
-    addForm.tags.find((tag) => tag.toLowerCase() === newTag.value.toLowerCase())
+    addForm.tags.find(
+      (tag) => tag.name.toLowerCase() === newTagName.value.toLowerCase()
+    )
   ) {
     return "Tag with that name already exists";
   }
   return checkName(tag, 15);
 }
 
-function checkQuantity(quantity): string {
+function checkQuantity(quantity: number): string {
   if (quantity > 100) {
     return "Quantity can't be more then 100";
   }
@@ -103,7 +105,16 @@ function addItem(newItem: IItem, routerPath: string) {
   hideDialog();
 }
 
-function checkForm() {
+function editItem(newItem: IItem): void {
+  treeStore.editItem({
+    ...newItem,
+    key: props.currentItem.key,
+    to: props.currentItem.to,
+  });
+  hideDialog();
+}
+
+function checkForm(): void {
   formErrors.errorLabel = checkLabel(String(addForm.label), getRootItemPath());
   let newItem: IItem = {
     label: addForm.label,
@@ -125,7 +136,12 @@ function checkForm() {
       !formErrors.errorQuantity &&
       !formErrors.errorDescription
     ) {
-      addItem(newItem, "/item/");
+      if (props.currentItem) {
+        editItem(newItem);
+      } else {
+        addItem(newItem, "/item/");
+      }
+
       addForm.quantity = 0;
       addForm.tags = [];
       addForm.description = "";
@@ -138,28 +154,45 @@ function checkForm() {
   }
 }
 
-function addTag() {
-  allTagsStore.addTag(newTag.value);
-  formErrors.errorTag = checkTag(newTag.value);
+function addTag(): void {
+  formErrors.errorTag = checkTag(newTagName.value);
 
   if (!formErrors.errorTag) {
-    addForm.tags.push(newTag.value);
-    newTag.value = "";
+    addForm.tags.push({ name: newTagName.value, favorite: false });
+    newTagName.value = "";
   }
 }
 
-function removeTag(tagForRemove: string) {
-  allTagsStore.removeTag(tagForRemove);
-  addForm.tags = addForm.tags.filter((tag) => tag !== tagForRemove);
+function removeTag(tagForRemove: ITag): void {
+  addForm.tags = addForm.tags.filter((tag) => tag.name !== tagForRemove.name);
   formErrors.errorTag = "";
 }
 
-function addIcon(e: FileUploadSelectEvent) {
+function addIcon(e: FileUploadSelectEvent): void {
   addForm.icon = e.files[0].objectURL;
 }
-function removeIcon() {
+function removeIcon(): void {
   addForm.icon = "";
 }
+
+onMounted(() => {
+  if (props.currentItem) {
+    addForm.label = props.currentItem.label;
+    addForm.description = props.currentItem.description;
+    addForm.quantity = props.currentItem.quantity;
+    addForm.icon = props.currentItem.icon;
+    addForm.tags = props.currentItem.tags;
+  }
+});
+onUpdated(() => {
+  if (props.currentItem) {
+    addForm.label = props.currentItem.label;
+    addForm.description = props.currentItem.description;
+    addForm.quantity = props.currentItem.quantity;
+    addForm.icon = props.currentItem.icon;
+    addForm.tags = props.currentItem.tags;
+  }
+});
 </script>
 
 <template>
@@ -203,7 +236,7 @@ function removeIcon() {
       <h3>Tags:</h3>
       <div class="p-inputgroup mt-2">
         <InputText
-          v-model="newTag"
+          v-model="newTagName"
           placeholder="Tag"
           :class="formErrors.errorTag && 'p-invalid'"
         />
@@ -214,9 +247,9 @@ function removeIcon() {
         <div>
           <Chip
             v-for="tag in addForm.tags"
-            :label="tag"
-            :key="tag"
-            :value="tag"
+            :label="tag.name"
+            :key="tag.name"
+            :value="tag.name"
             @remove="() => removeTag(tag)"
             class="relative"
             removable

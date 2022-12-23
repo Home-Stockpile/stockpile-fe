@@ -3,10 +3,11 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useTreeNodes } from "@/store/treeNodes";
 import AddItemDialog from "@/components/AddItemDialog.vue";
-import { DialogTypes } from "@/types/dialog";
+import { AddDialog, DialogTypes } from "@/types/dialog";
 
 import type { IItem } from "@/types/treeNodes";
 import DefaultPage from "@/views/DefaultPage.vue";
+import router from "@/router";
 
 const route = useRoute();
 
@@ -20,15 +21,30 @@ const nestingLevel = computed(
   () => String(route.params.key).split("_").length < 2
 );
 const dialogVisibility = ref(false);
-const dialogType = ref(DialogTypes.section);
+const dialogType = ref<AddDialog>(DialogTypes.section);
 
-function showDialog(type) {
+function showDialog(type: AddDialog): void {
   dialogType.value = type;
   dialogVisibility.value = true;
 }
-function hideDialog() {
+function hideDialog(): void {
   dialogVisibility.value = false;
 }
+
+function removeItem(): void {
+  router.go(-1);
+  let rootItemPath: string[] = [];
+  if (currentItem.value.key.includes("_")) {
+    rootItemPath = currentItem.value.key
+      .slice(0, currentItem.value.key.lastIndexOf("_"))
+      .split("_");
+  } else {
+    rootItemPath = ["0"];
+  }
+
+  treeStore.removeItem(rootItemPath, String(route.params.key));
+}
+
 onMounted(() => {
   currentItem.value = treeStore.getItem(
     tree,
@@ -96,6 +112,11 @@ watch(
           @click="() => showDialog(DialogTypes.section)"
           label="Add subsection"
           class="p-button-success ml-4"
+        />
+        <Button
+          @click="removeItem"
+          label="Delete section"
+          class="p-button-danger ml-3"
         />
       </template>
     </Toolbar>

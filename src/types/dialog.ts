@@ -3,3 +3,7 @@ export enum DialogTypes {
   section = "SECTION",
   item = "ITEM",
 }
+export type AddDialog =
+  | DialogTypes.item
+  | DialogTypes.root
+  | DialogTypes.section;

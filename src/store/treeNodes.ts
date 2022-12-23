@@ -2,9 +2,11 @@ import { defineStore } from "pinia";
 import type { IItem } from "../types/treeNodes";
 import { nextNodeKey } from "@/functions/nextNodeKey";
 import { sortByType } from "@/functions/sortByType";
+import { ITag } from "@/types/tags";
 
 export const useTreeNodes = defineStore("treeNodes", {
   state: (): IItem => {
+    // @ts-ignore
     return {
       key: "0",
       to: "/",
@@ -30,7 +32,7 @@ export const useTreeNodes = defineStore("treeNodes", {
                   key: "1_1_1",
                   label: "Fork",
                   description: "this is a fork",
-                  tags: ["Tag1", "Tag3"],
+                  tags: [{ name: "Tag1", favorite: false }],
                   quantity: 24,
                   to: `/item/1_1_1`,
                 },
@@ -38,7 +40,7 @@ export const useTreeNodes = defineStore("treeNodes", {
                   key: "1_1_2",
                   label: "Spoon",
                   description: "this is a spoon",
-                  tags: ["Tag1"],
+                  tags: [{ name: "Tag2", favorite: false }],
                   quantity: 14,
                   to: "/item/1_1_2",
                 },
@@ -63,7 +65,7 @@ export const useTreeNodes = defineStore("treeNodes", {
                   label: "Hummer",
                   favorites: true,
                   description: "this is a Hummer",
-                  tags: ["Tag3"],
+                  tags: [{ name: "Tag3", favorite: false }],
                   quantity: 1,
                   to: "/item/2_1_1",
                 },
@@ -72,7 +74,7 @@ export const useTreeNodes = defineStore("treeNodes", {
                   label: "Wrench 1",
                   favorites: false,
                   description: "this is a Wrench",
-                  tags: ["Tag1", "Tag3"],
+                  tags: [{ name: "Tag4", favorite: false }],
                   quantity: 1,
                   to: `/item/2_1_2`,
                 },
@@ -81,7 +83,7 @@ export const useTreeNodes = defineStore("treeNodes", {
                   label: "Flat screwdriwer",
                   favorites: false,
                   description: "this is a screwdriwer",
-                  tags: ["Tag1", "Tag3"],
+                  tags: [{ name: "Tag1", favorite: false }],
                   quantity: 4,
                   to: "/item/2_1_3",
                 },
@@ -98,7 +100,7 @@ export const useTreeNodes = defineStore("treeNodes", {
                   label: "Nuts",
                   favorites: true,
                   description: "this is Nuts",
-                  tags: ["Tag3"],
+                  tags: [{ name: "Tag2", favorite: false }],
                   quantity: 54,
                   to: "/item/2_2_1",
                 },
@@ -107,7 +109,7 @@ export const useTreeNodes = defineStore("treeNodes", {
                   label: "Bolts",
                   favorites: false,
                   description: "this is Bolts",
-                  tags: ["Tag1", "Tag3"],
+                  tags: [{ name: "Tag3", favorite: false }],
                   quantity: 31,
                   to: `/item/2_2_2`,
                 },
@@ -122,7 +124,6 @@ export const useTreeNodes = defineStore("treeNodes", {
     addItem(item: IItem, rootItemPath: string[], routerPath) {
       const path = rootItemPath.slice(0).join("_");
       const rootItem = this.getItem(this.$state, rootItemPath);
-
       let lastKey = "";
       if (!rootItem.items.length) {
         lastKey = path + "_0";
@@ -136,24 +137,68 @@ export const useTreeNodes = defineStore("treeNodes", {
       });
       rootItem.items = sortByType(rootItem);
     },
-    addToFavorites(rootItemPath: string[]) {
-      const rootItem = this.getItem(this.$state, rootItemPath);
-      rootItem.favorites = !rootItem.favorites;
+
+    addToFavorites(itemPath: string[]) {
+      const item = this.getItem(this.$state, itemPath);
+      item.favorites = !item.favorites;
+    },
+
+    addTagToFavorites(element: IItem, tag: ITag): null {
+      if (!element.items) {
+        element.tags.forEach((eTag, index) => {
+          if (eTag.name === tag.name) {
+            element.tags[index].favorite = !element.tags[index].favorite;
+          }
+        });
+      }
+      if (element.items) {
+        let item = null;
+        element.items.forEach(
+          (i) => (item = this.addTagToFavorites(i, tag) || null)
+        );
+        return item;
+      }
+      return null;
+    },
+
+    editItem(newItem: IItem) {
+      const currentItem = this.getItem(this.$state, newItem.key.split("_"));
+      currentItem.key = newItem.key;
+      currentItem.label = newItem.label;
+      currentItem.favorites = newItem.favorites;
+      currentItem.description = newItem.description;
+      currentItem.tags = newItem.tags;
+      currentItem.quantity = newItem.quantity;
+      currentItem.to = newItem.to;
+    },
+    removeItem(rootItemPath: string[], itemPath: string) {
+      const rootItem: IItem = this.getItem(this.$state, rootItemPath);
+      rootItem.items = rootItem.items.filter((i) => i.key !== itemPath);
     },
   },
   getters: {
     getTree: (state) => state,
 
     getItem: () =>
-      function getItem(item: IItem, path: string[]): IItem {
-        const arrIndex = Number(path.shift()) - 1;
-        if (arrIndex === -1) {
+      function getItem(item: IItem, path: string[]): IItem | null {
+        if (path[0] === "0") {
           return item;
         }
-        if (!path.length) {
-          return item.items[arrIndex];
+        if (!item) {
+          return null;
         }
-        return getItem(item.items[arrIndex], path);
+        if (!item.items) {
+          return item;
+        }
+        const keyFirstPart = path.slice(0, 2).join("_");
+        const itemKey = path.shift();
+        const findItem = item.items.find((i) => i.key === itemKey);
+        if (!path.length) {
+          return findItem;
+        }
+        path.splice(0, 1, keyFirstPart);
+
+        return getItem(findItem, path);
       },
     getFavorites: () =>
       function getFavorites(element: IItem, searchResult: IItem[]): IItem[] {
@@ -174,13 +219,42 @@ export const useTreeNodes = defineStore("treeNodes", {
         item: IItem,
         path: string[],
         breadcrumbs: IItem[]
-      ): IItem[] {
-        const arrIndex = Number(path.shift()) - 1;
-        breadcrumbs = [...breadcrumbs, item[arrIndex]];
-        if (!path.length) {
+      ): IItem[] | null {
+        if (!item) {
           return breadcrumbs;
         }
-        return getBreadcrumbs(item[arrIndex].items, path, breadcrumbs);
+        const keyFirstPart = path.slice(0, 2).join("_");
+        const itemKey = path.shift();
+        const findItem = item.find((i) => i.key === itemKey);
+        if (!path.length) {
+          return [...breadcrumbs, findItem];
+        }
+        path.splice(0, 1, keyFirstPart);
+
+        breadcrumbs = [...breadcrumbs, findItem];
+        if (!findItem) {
+          return breadcrumbs;
+        }
+        return getBreadcrumbs(findItem.items, path, breadcrumbs);
+      },
+    getTags: () =>
+      function getTags(element: IItem, searchResult: ITag[]): IItem[] {
+        if (!element.items) {
+          element.tags.forEach((eTag) => {
+            if (!searchResult.find((sTag) => sTag.name === eTag.name)) {
+              searchResult.push(eTag);
+            }
+          });
+        }
+
+        if (element.items) {
+          let item = null;
+          element.items.forEach(
+            (i) => (item = getTags(i, searchResult) || searchResult)
+          );
+          return item;
+        }
+        return searchResult;
       },
   },
 });
