@@ -1,9 +1,8 @@
 <script setup>
 import Header from "./components/Header.vue";
-import MenuLeft from "./components/MenuLeft.vue";
-import MainPage from "./components/MainPage.vue";
+import MenuLeft from "./components/NavigationDrawer.vue";
+import MainPage from "./components/Main.vue";
 </script>
-
 <template>
   <div class="flex h-screen p-4">
     <MenuLeft />

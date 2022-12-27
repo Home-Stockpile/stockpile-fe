@@ -8,14 +8,12 @@ import { DialogTypes } from "@/types/dialog";
 import AddItemDialog from "@/components/AddItemDialog.vue";
 import router from "@/router";
 import { InputNumberInputEvent } from "primevue/inputnumber";
-
 const route = useRoute();
 const treeStore = useTreeNodes();
 const tree = treeStore.getTree;
-
-const breadcrumbs = ref<IItem[]>([]);
 const currentItem = ref<IItem>({});
 const dialogVisibility = ref(false);
+const defaultIcons = treeStore.getDefaultIcons;
 
 function showDialog(): void {
   dialogVisibility.value = true;
@@ -23,7 +21,6 @@ function showDialog(): void {
 function hideDialog(): void {
   dialogVisibility.value = false;
 }
-
 function changeQuantity(e: InputNumberInputEvent): void {
   treeStore.editItem({ ...currentItem.value, quantity: Number(e.value) });
 }
@@ -34,16 +31,10 @@ function removeItem(): void {
     .split("_");
   treeStore.removeItem(rootItemPath, String(route.params.key));
 }
-
 onBeforeMount(() => {
   currentItem.value = treeStore.getItem(
     tree,
     String(route.params.key).split("_")
-  );
-  breadcrumbs.value = treeStore.getBreadcrumbs(
-    tree.items,
-    String(route.params.key).split("_"),
-    []
   );
 });
 watch(
@@ -52,11 +43,6 @@ watch(
     currentItem.value = treeStore.getItem(
       tree,
       String(route.params.key).split("_")
-    );
-    breadcrumbs.value = treeStore.getBreadcrumbs(
-      tree.items,
-      String(route.params.key).split("_"),
-      []
     );
   }
 );
@@ -69,14 +55,8 @@ watch(
     :current-item="currentItem"
     :dialog-type="DialogTypes.item"
   />
-  <div v-if="currentItem">
-    <Breadcrumb
-      class="overflow-x-scroll md:overflow-hidden"
-      :home="tree"
-      :model="breadcrumbs"
-      aria-label="breadcrumb"
-    />
 
+  <div v-if="currentItem">
     <div class="mt-3 mb-1 text-lg">
       Tags:
       <Tag
@@ -90,7 +70,7 @@ watch(
       <template #start>
         <div class="flex align-items-center">
           <Image
-            :src="currentItem.icon || tree.defaultItemIcon"
+            :src="currentItem.icon || defaultIcons.itemIcon"
             width="32"
             height="32"
             imageClass="border-circle inline mr-2"

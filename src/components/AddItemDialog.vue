@@ -43,17 +43,20 @@ function hideDialog(): void {
   formErrors.errorQuantity = "";
   formErrors.errorDescription = "";
 
+  newTagName.value = "";
   addForm.label = "";
   addForm.description = "";
+  addForm.icon = "";
+  addForm.quantity = 0;
   addForm.tags = [];
   emit("hide-dialog");
 }
 
-function checkDialogType(): boolean {
+function isItem(): boolean {
   return props.dialogType === DialogTypes.item;
 }
 
-function checkName(name: string, length: number): string {
+function validateName(name: string, length: number): string {
   if (name.length > length) {
     return `Field can't be longer than ${length} chars`;
   }
@@ -63,7 +66,7 @@ function checkName(name: string, length: number): string {
   return "";
 }
 
-function checkLabel(label: string, path): string {
+function validateLabel(label: string, path): string {
   const rootObj = treeStore.getItem(tree, path.split("_"));
   if (
     !props.currentItem &&
@@ -73,10 +76,10 @@ function checkLabel(label: string, path): string {
   ) {
     return "Field with that name already exist";
   }
-  return checkName(label, 25);
+  return validateName(label, 25);
 }
 
-function checkTag(tag: string): string {
+function validateTag(tag: string): string {
   if (
     addForm.tags.find(
       (tag) => tag.name.toLowerCase() === newTagName.value.toLowerCase()
@@ -84,10 +87,10 @@ function checkTag(tag: string): string {
   ) {
     return "Tag with that name already exists";
   }
-  return checkName(tag, 15);
+  return validateName(tag, 15);
 }
 
-function checkQuantity(quantity: number): string {
+function validateQuantity(quantity: number): string {
   if (quantity > 100) {
     return "Quantity can't be more then 100";
   }
@@ -100,8 +103,8 @@ function getRootItemPath(): string {
   }
   return String(route.params.key);
 }
-function addItem(newItem: IItem, routerPath: string) {
-  treeStore.addItem(newItem, getRootItemPath().split("_"), routerPath);
+function addTreeNode(newItem: IItem, routerPath: string) {
+  treeStore.addTreeNode(newItem, getRootItemPath().split("_"), routerPath);
   hideDialog();
 }
 
@@ -114,48 +117,62 @@ function editItem(newItem: IItem): void {
   hideDialog();
 }
 
-function checkForm(): void {
-  formErrors.errorLabel = checkLabel(String(addForm.label), getRootItemPath());
+function modifyItem(newItem) {
+  newItem = {
+    ...newItem,
+    quantity: addForm.quantity,
+    tags: addForm.tags,
+    description: addForm.description,
+  };
+
+  if (!formErrors.errorLabel) {
+    if (props.currentItem) {
+      editItem(newItem);
+    } else {
+      addTreeNode(newItem, "/item/");
+    }
+  }
+}
+
+function modifySection(newItem: IItem) {
+  newItem = {
+    ...newItem,
+    items: [],
+  };
+  formErrors.errorQuantity = validateQuantity(addForm.quantity); //quantity -> count
+  formErrors.errorDescription = validateName(addForm.description, 264);
+  if (
+    !formErrors.errorLabel &&
+    !formErrors.errorQuantity &&
+    !formErrors.errorDescription
+  ) {
+    if (props.currentItem) {
+      editItem(newItem);
+    } else {
+      addTreeNode(newItem, "/section/");
+    }
+  }
+}
+
+function validateForm(): void {
+  formErrors.errorLabel = validateLabel(
+    String(addForm.label),
+    getRootItemPath()
+  );
   let newItem: IItem = {
     label: addForm.label,
     icon: addForm.icon,
     favorites: false,
   };
-
-  if (checkDialogType()) {
-    formErrors.errorQuantity = checkQuantity(addForm.quantity);
-    formErrors.errorDescription = checkName(addForm.description, 264);
-    newItem = {
-      ...newItem,
-      quantity: addForm.quantity,
-      tags: addForm.tags,
-      description: addForm.description,
-    };
-    if (
-      !formErrors.errorLabel &&
-      !formErrors.errorQuantity &&
-      !formErrors.errorDescription
-    ) {
-      if (props.currentItem) {
-        editItem(newItem);
-      } else {
-        addItem(newItem, "/item/");
-      }
-
-      addForm.quantity = 0;
-      addForm.tags = [];
-      addForm.description = "";
-    }
+  if (isItem()) {
+    modifyItem(newItem);
   } else {
-    newItem = { ...newItem, items: [] };
-    if (!formErrors.errorLabel) {
-      addItem(newItem, "/section/");
-    }
+    modifySection(newItem);
   }
 }
 
 function addTag(): void {
-  formErrors.errorTag = checkTag(newTagName.value);
+  formErrors.errorTag = validateTag(newTagName.value);
 
   if (!formErrors.errorTag) {
     addForm.tags.push({ name: newTagName.value, favorite: false });
@@ -178,19 +195,19 @@ function removeIcon(): void {
 onMounted(() => {
   if (props.currentItem) {
     addForm.label = props.currentItem.label;
-    addForm.description = props.currentItem.description;
-    addForm.quantity = props.currentItem.quantity;
-    addForm.icon = props.currentItem.icon;
-    addForm.tags = props.currentItem.tags;
+    addForm.description = props.currentItem.description || "";
+    addForm.quantity = props.currentItem.quantity || 0;
+    addForm.icon = props.currentItem.icon || "";
+    addForm.tags = props.currentItem.tags || [];
   }
 });
 onUpdated(() => {
   if (props.currentItem) {
     addForm.label = props.currentItem.label;
-    addForm.description = props.currentItem.description;
-    addForm.quantity = props.currentItem.quantity;
-    addForm.icon = props.currentItem.icon;
-    addForm.tags = props.currentItem.tags;
+    addForm.description = props.currentItem.description || "";
+    addForm.quantity = props.currentItem.quantity || 0;
+    addForm.icon = props.currentItem.icon || "";
+    addForm.tags = props.currentItem.tags || [];
   }
 });
 </script>
@@ -202,7 +219,8 @@ onUpdated(() => {
     :modal="true"
     :closable="false"
   >
-    <h3>Enter name of new section:</h3>
+    <h3 v-if="isItem()">Enter name of new item :</h3>
+    <h3 v-else>Enter name of new place:</h3>
     <InputText
       placeholder="Name"
       v-model.trim="addForm.label"
@@ -212,7 +230,7 @@ onUpdated(() => {
     />
 
     <small class="ml-2 text-xs text-red-600">{{ formErrors.errorLabel }}</small>
-    <div v-show="checkDialogType()">
+    <div v-show="isItem()">
       <h3 class="my-2">Quantity:</h3>
       <div class="grid p-fluid">
         <div class="field col-12 mb-0">
@@ -288,12 +306,12 @@ onUpdated(() => {
     </FileUpload>
     <template #footer>
       <Button
-        label="Reject"
+        label="Cancel"
         icon="pi pi-times"
         @click="hideDialog"
         class="p-button-text"
       />
-      <Button label="Save" icon="pi pi-check" @click="checkForm" autofocus />
+      <Button label="Save" icon="pi pi-check" @click="validateForm" autofocus />
     </template>
   </Dialog>
 </template>

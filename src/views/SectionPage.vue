@@ -13,22 +13,29 @@ const route = useRoute();
 
 const treeStore = useTreeNodes();
 const tree = treeStore.getTree;
+const defaultIcons = treeStore.getDefaultIcons;
 
-const breadcrumbs = ref<IItem[]>([]);
 const currentItem = ref<IItem>({});
 
 const nestingLevel = computed(
-  () => String(route.params.key).split("_").length < 2
+  () => String(route.params.key).split("_").length < 3
 );
 const dialogVisibility = ref(false);
+const editDialogVisibility = ref(false);
+
 const dialogType = ref<AddDialog>(DialogTypes.section);
 
 function showDialog(type: AddDialog): void {
   dialogType.value = type;
   dialogVisibility.value = true;
 }
+function showEditDialog(type: AddDialog): void {
+  dialogType.value = type;
+  editDialogVisibility.value = true;
+}
 function hideDialog(): void {
   dialogVisibility.value = false;
+  editDialogVisibility.value = false;
 }
 
 function removeItem(): void {
@@ -50,11 +57,6 @@ onMounted(() => {
     tree,
     String(route.params.key).split("_")
   );
-  breadcrumbs.value = treeStore.getBreadcrumbs(
-    tree.items,
-    String(route.params.key).split("_"),
-    []
-  );
 });
 
 watch(
@@ -63,11 +65,6 @@ watch(
     currentItem.value = treeStore.getItem(
       tree,
       String(route.params.key).split("_")
-    );
-    breadcrumbs.value = treeStore.getBreadcrumbs(
-      tree.items,
-      String(route.params.key).split("_"),
-      []
     );
   }
 );
@@ -79,20 +76,18 @@ watch(
     :dialog-visibility="dialogVisibility"
     :dialog-type="dialogType"
   />
-
+  <AddItemDialog
+    @hide-dialog="hideDialog"
+    :dialog-visibility="editDialogVisibility"
+    :current-item="currentItem"
+    :dialog-type="dialogType"
+  />
   <div v-if="currentItem">
-    <Breadcrumb
-      class="overflow-x-scroll md:overflow-hidden"
-      :home="tree"
-      :model="breadcrumbs"
-      aria-label="breadcrumb"
-    />
-
-    <Toolbar class="mt-3 border-0 p-2">
+    <Toolbar class="border-0 p-2">
       <template #start>
         <div class="flex align-items-center">
           <Image
-            :src="currentItem.icon || tree.defaultFolderIcon"
+            :src="currentItem.icon || defaultIcons.itemIcon"
             width="32"
             height="32"
             imageClass="border-circle inline mr-2"
@@ -110,12 +105,18 @@ watch(
         <Button
           v-show="nestingLevel"
           @click="() => showDialog(DialogTypes.section)"
-          label="Add subsection"
+          label="Add place"
           class="p-button-success ml-4"
         />
         <Button
+          @click="showEditDialog(DialogTypes.section)"
+          label="Edit"
+          class="p-button-success ml-3"
+        />
+
+        <Button
           @click="removeItem"
-          label="Delete section"
+          label="Delete place"
           class="p-button-danger ml-3"
         />
       </template>

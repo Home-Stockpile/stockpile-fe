@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import ItemPage from "../views/ItemPage.vue";
 import DefaultPage from "../views/DefaultPage.vue";
 import SectionPage from "../views/SectionPage.vue";
+import { useTreeNodes } from "@/store/treeNodes";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -23,5 +24,14 @@ const router = createRouter({
     },
   ],
 });
-
+router.beforeEach((to) => {
+  const treeStore = useTreeNodes();
+  const currentItem = treeStore.getItem(
+    treeStore.tree,
+    String(to.params.key).split("_")
+  );
+  if (!currentItem && to.fullPath !== "/") {
+    return "/";
+  }
+});
 export default router;

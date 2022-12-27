@@ -93,7 +93,7 @@ onMounted(() => {
         <i
           @click.stop.prevent="
             () =>
-              treeStore.addTagToFavorites(tree, {
+              treeStore.toggleTagFavorites(tree, {
                 name: slotProps.option.name,
                 favorite: slotProps.option.favorite,
               })
@@ -120,7 +120,7 @@ onMounted(() => {
         <i
           @click.stop.prevent="
             () =>
-              treeStore.addTagToFavorites(tree, {
+              treeStore.toggleTagFavorites(tree, {
                 name: slotProps.option.name,
                 favorite: slotProps.option.favorite,
               })
