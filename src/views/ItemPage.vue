@@ -66,7 +66,7 @@ watch(
       <template #start>
         <div class="flex align-items-center">
           <Image
-            :src="currentItem.icon || tree.defaultIcon"
+            :src="currentItem.icon || tree.defaultItemIcon"
             width="32"
             height="32"
             imageClass="border-circle inline mr-2"
@@ -106,9 +106,6 @@ watch(
 </template>
 
 <style scoped>
-:deep(.p-menuitem-link) {
-  box-shadow: none !important;
-}
 :deep(.p-inputtext) {
   width: 3.5rem;
 }

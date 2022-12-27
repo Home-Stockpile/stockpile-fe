@@ -6,7 +6,7 @@ import { DialogTypes } from "@/types/dialog";
 import { IItem } from "@/types/treeNodes";
 import type Dialog from "primevue/dialog";
 import { FileUploadSelectEvent } from "primevue/fileupload";
-import { useAllTags } from "@/store/tags";
+import { useAllTags } from "@/store/tag";
 
 interface IAddItemDialog {
   dialogVisibility: boolean;

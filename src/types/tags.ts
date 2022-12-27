@@ -1,3 +1,5 @@
-export interface ITags {
-  tags: { name: string; quantity: number }[];
+export interface ITag {
+  name: string;
+  quantity: number;
+  favorite: boolean;
 }

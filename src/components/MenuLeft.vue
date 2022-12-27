@@ -3,25 +3,28 @@ import AddItemDialog from "@/components/AddItemDialog.vue";
 import { useTreeNodes } from "@/store/treeNodes";
 import { ref } from "vue";
 import { IItem } from "@/types/treeNodes";
-import { useAllTags } from "@/store/tags";
+import Filters from "@/components/Filters.vue";
+import { DialogTypes } from "@/types/dialog";
 
-const tree = useTreeNodes().getTree;
-const allTags = useAllTags().getTags;
+const treeStore = useTreeNodes();
+const tree = treeStore.getTree;
 const dialogVisibility = ref(false);
 const searchQuery = ref("");
 const searchQueryError = ref("");
 const options = ref({ all: "All", favorites: "Favorites" });
 const isFavoriteCategory = ref(false);
 const panelMenu = ref<IItem[]>(tree.items);
-const filterVisible = ref(false);
-const selectedTag = ref();
+const filtersVisibility = ref(false);
+const tagForSearch = ref("");
 
 function hideDialog() {
   dialogVisibility.value = false;
 }
+
 function showDialog() {
   dialogVisibility.value = true;
 }
+
 function checkSearchQuery(query) {
   if (!query.trim()) {
     return "Field can't be empty";
@@ -48,50 +51,36 @@ function searchItem(element: IItem, searchResult: IItem[]): IItem[] {
   ) {
     searchResult.push(element);
   }
-
   if (element.items) {
     let item = null;
     for (let i = 0; i < element.items.length; i++) {
       item = searchItem(element.items[i], searchResult);
     }
-
     return item;
   }
-
   return searchResult;
 }
 
-function resetResult() {
-  if (!searchQuery.value) {
+function resetSearchResult() {
+  if (!searchQuery.value && !isFavoriteCategory.value) {
     panelMenu.value = tree.items;
   }
-}
-
-function searchFavorites(element: IItem, searchResult: IItem[]): IItem[] {
-  if (element.favorites) {
-    searchResult.push(element);
+  if (!searchQuery.value && isFavoriteCategory.value) {
+    panelMenu.value = treeStore.getFavorites(tree, []);
   }
-
-  if (element.items) {
-    let item = null;
-    element.items.forEach(
-      (i) => (item = searchFavorites(i, searchResult) || searchResult)
-    );
-    return item;
-  }
-  return searchResult;
 }
 
 function switchFavorites(e) {
   if (e.target.innerHTML === options.value.favorites) {
     isFavoriteCategory.value = true;
-    panelMenu.value = searchFavorites(tree, []);
+    panelMenu.value = treeStore.getFavorites(tree, []);
   } else {
     isFavoriteCategory.value = false;
     panelMenu.value = tree.items;
   }
   searchQueryError.value = "";
   searchQuery.value = "";
+  tagForSearch.value = "";
 }
 
 function addTag(key) {
@@ -99,39 +88,36 @@ function addTag(key) {
 }
 
 function onFilter() {
-  filterVisible.value = !filterVisible.value;
+  filtersVisibility.value = !filtersVisibility.value;
 }
 
-function filterByTag(element: IItem, searchResult: IItem[]): IItem[] {
-  if (element.tags && element.tags.find((tag) => tag === selectedTag.value)) {
-    searchResult.push(element);
-  }
-
-  if (element.items) {
-    let item = null;
-    for (let i = 0; i < element.items.length; i++) {
-      item = filterByTag(element.items[i], searchResult);
-    }
-
-    return item;
-  }
-
-  return searchResult;
-}
-
-function onApplyFilters() {
-  if (selectedTag.value) {
-    panelMenu.value = filterByTag(tree, []);
+function changeFilters(value: IItem[], tag) {
+  tagForSearch.value = tag;
+  searchQueryError.value = "";
+  searchQuery.value = "";
+  if (value) {
+    panelMenu.value = value;
     onFilter();
+  } else {
+    if (isFavoriteCategory.value) {
+      panelMenu.value = treeStore.getFavorites(tree, []);
+    } else {
+      panelMenu.value = tree.items;
+    }
   }
-}
-function onResetFilters() {
-  panelMenu.value = tree.items;
-  selectedTag.value = "";
 }
 </script>
 
 <template>
+  <AddItemDialog
+    @hide-dialog="hideDialog"
+    :dialog-visibility="dialogVisibility"
+    :dialog-type="DialogTypes.root"
+  />
+  <Sidebar v-model:visible="filtersVisibility" :baseZIndex="2">
+    <Filters @change-filters="changeFilters" :tag-for-search="tagForSearch" />
+  </Sidebar>
+
   <nav
     class="left-menu w-25rem p-1 border-round-xl h-full"
     :class="tree.items.length > 14 ? 'overflow-y-scroll' : 'overflow-hidden'"
@@ -145,7 +131,7 @@ function onResetFilters() {
       <InputText
         :class="searchQueryError && 'p-invalid'"
         v-model.trim="searchQuery"
-        @input="resetResult"
+        @input="resetSearchResult"
         placeholder="Keyword"
       />
       <Button @click="onFilter" icon="pi pi-filter" class="p-button-error" />
@@ -159,38 +145,6 @@ function onResetFilters() {
       searchQueryError
     }}</small>
 
-    <Sidebar v-model:visible="filterVisible" :baseZIndex="2">
-      <h3>Filter by Tag:</h3>
-      <Dropdown
-        v-model="selectedTag"
-        :options="allTags"
-        class="mt-2 w-full"
-        optionLabel="name"
-        optionValue="name"
-        placeholder="Select a Tag"
-      />
-      <div class="flex justify-content-between mt-4">
-        <Button
-          label="Reset"
-          icon="pi pi-times"
-          @click="onResetFilters"
-          class="p-button-text ml-2"
-        />
-        <Button
-          label="Apply"
-          icon="pi pi-check"
-          @click="onApplyFilters"
-          autofocus
-          class="mr-2"
-        />
-      </div>
-    </Sidebar>
-
-    <AddItemDialog
-      @hide-dialog="hideDialog"
-      :dialog-visibility="dialogVisibility"
-      dialog-type="ROOT_SECTION"
-    />
     <div class="mt-2 cursor-pointer select-none">
       <span @click="switchFavorites" :class="!isFavoriteCategory && 'underline'"
         >{{ options.all }}
@@ -202,12 +156,10 @@ function onResetFilters() {
         >{{ options.favorites }}</span
       >
     </div>
-    <div
-      class="mt-2 text-red-600"
-      v-if="isFavoriteCategory && !panelMenu.length"
-    >
-      No favs
+    <div v-show="tagForSearch" class="mt-2">
+      Filtered by tag: {{ tagForSearch }}
     </div>
+
     <PanelMenu class="border-0 mt-2" :model="panelMenu">
       <template #item="{ item }">
         <RouterLink
@@ -215,7 +167,10 @@ function onResetFilters() {
           :to="item.to"
         >
           <Image
-            :src="item.icon || tree.defaultIcon"
+            :src="
+              item.icon ||
+              (item.items ? tree.defaultFolderIcon : tree.defaultItemIcon)
+            "
             width="32"
             height="32"
             imageClass="border-circle inline"
@@ -225,23 +180,26 @@ function onResetFilters() {
           </div>
           <div
             @click.stop.prevent="() => addTag(item.key)"
-            class="absolute border-circle border-1 heart"
+            class="absolute border-circle` heart"
           >
             <i
               class="pi pi-heart text-color p-2 border-circle"
               :class="item.favorites ? 'bg-pink-300 ' : 'bg-white'"
-            ></i>
+            />
           </div>
         </RouterLink>
       </template>
     </PanelMenu>
+    <div
+      v-if="!panelMenu.length"
+      class="text-2xl text-red-600 flex justify-content-center"
+    >
+      No items
+    </div>
   </nav>
 </template>
 
 <style scoped>
-:deep(.p-button, .p-button-warning, .p-button-outlined) {
-  box-shadow: none !important;
-}
 :deep(.p-selectbutton > .p-button.p-component) {
   border-radius: 50%;
   padding: 0.5rem;

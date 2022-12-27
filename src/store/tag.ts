@@ -1,14 +1,14 @@
 import { defineStore } from "pinia";
-import { ITags } from "@/types/tags";
+import { ITag } from "@/types/tags";
 
 export const useAllTags = defineStore("tags", {
-  state: (): ITags => {
+  state: () => {
     return {
       tags: [
-        { name: "Tag1", quantity: 7 },
-        { name: "Tag2", quantity: 7 },
-        { name: "Tag3", quantity: 7 },
-      ],
+        { name: "Tag1", quantity: 5, favorite: false },
+        { name: "Tag2", quantity: 1, favorite: false },
+        { name: "Tag3", quantity: 6, favorite: false },
+      ] as ITag[],
     };
   },
   actions: {
@@ -29,8 +29,12 @@ export const useAllTags = defineStore("tags", {
         this.$state.tags.splice(index, 1);
       }
     },
+    switchFavorites(name) {
+      const tag = this.$state.tags.find((item) => item.name === name);
+      tag.favorite = !tag.favorite;
+    },
   },
   getters: {
-    getTags: (state) => state.tags,
+    getTags: (state): ITag[] => state.tags,
   },
 });
