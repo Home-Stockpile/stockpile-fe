@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useAllTags } from "@/store/tag";
 import { onMounted, ref, watch } from "vue";
 import { IItem } from "@/types/treeNodes";
 import { useTreeNodes } from "@/store/treeNodes";
@@ -7,20 +6,21 @@ import { useTreeNodes } from "@/store/treeNodes";
 const props = defineProps({ tagForSearch: String });
 const emit = defineEmits(["change-filters"]);
 
-const tree = useTreeNodes().getTree;
-const tagsStore = useAllTags();
-const allTags = tagsStore.getTags;
+const treeStore = useTreeNodes();
+const tree = treeStore.getTree;
 
-const tagError = ref();
-const selectedFavTag = ref();
-const selectedTag = ref();
+const allTags = treeStore.getTags(tree, []);
+
+const tagError = ref("");
+const selectedFavTag = ref("");
+const selectedTag = ref("");
 
 function filterByTag(
   element: IItem,
   tagForSearch: string,
   searchResult: IItem[]
 ): IItem[] {
-  if (element.tags && element.tags.find((tag) => tag === tagForSearch)) {
+  if (element.tags && element.tags.find((tag) => tag.name === tagForSearch)) {
     searchResult.push(element);
   }
   if (element.items) {
@@ -50,6 +50,7 @@ function onResetFilters(): void {
 
 function setPrevFilterValue(): void {
   if (
+    allTags &&
     allTags
       .filter((tag) => tag.favorite)
       .find((tag) => tag.name === props.tagForSearch)
@@ -80,7 +81,7 @@ onMounted(() => {
   <h3>Filter by favorite tag:</h3>
   <Dropdown
     v-model="selectedFavTag"
-    :options="allTags.filter((tag) => tag.favorite)"
+    :options="allTags && allTags.filter((tag) => tag.favorite)"
     class="mt-2 w-full"
     optionLabel="name"
     optionValue="name"
@@ -91,7 +92,11 @@ onMounted(() => {
         <span class="flex align-items-center">{{ slotProps.option.name }}</span>
         <i
           @click.stop.prevent="
-            () => tagsStore.switchFavorites(slotProps.option.name)
+            () =>
+              treeStore.addTagToFavorites(tree, {
+                name: slotProps.option.name,
+                favorite: slotProps.option.favorite,
+              })
           "
           class="pi pi-heart text-color p-2 border-circle"
           :class="slotProps.option.favorite ? 'bg-pink-300 ' : 'bg-white'"
@@ -114,7 +119,11 @@ onMounted(() => {
         <span class="flex align-items-center">{{ slotProps.option.name }}</span>
         <i
           @click.stop.prevent="
-            () => tagsStore.switchFavorites(slotProps.option.name)
+            () =>
+              treeStore.addTagToFavorites(tree, {
+                name: slotProps.option.name,
+                favorite: slotProps.option.favorite,
+              })
           "
           class="pi pi-heart text-color p-2 border-circle"
           :class="slotProps.option.favorite ? 'bg-pink-300 ' : 'bg-white'"

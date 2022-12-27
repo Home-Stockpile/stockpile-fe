@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AddItemDialog from "@/components/AddItemDialog.vue";
 import { useTreeNodes } from "@/store/treeNodes";
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { IItem } from "@/types/treeNodes";
 import Filters from "@/components/Filters.vue";
 import { DialogTypes } from "@/types/dialog";
@@ -13,30 +13,48 @@ const searchQuery = ref("");
 const searchQueryError = ref("");
 const options = ref({ all: "All", favorites: "Favorites" });
 const isFavoriteCategory = ref(false);
-const panelMenu = ref<IItem[]>(tree.items);
+const searchResults = ref<IItem[]>([]);
 const filtersVisibility = ref(false);
 const tagForSearch = ref("");
+const isFilter = ref(false);
+const isNoItems = computed(() => {
+  if (!tree.items) {
+    return true;
+  }
+  if (!searchResults.value.length && isFilter.value) {
+    return true;
+  }
+  if (!treeStore.getFavorites(tree, [])) {
+    return true;
+  }
+  if (!treeStore.getFavorites(tree, []).length && isFavoriteCategory.value) {
+    return true;
+  }
 
-function hideDialog() {
+  return false;
+});
+
+function hideDialog(): void {
   dialogVisibility.value = false;
 }
 
-function showDialog() {
+function showDialog(): void {
   dialogVisibility.value = true;
 }
 
-function checkSearchQuery(query) {
+function checkSearchQuery(query: string): string {
   if (!query.trim()) {
     return "Field can't be empty";
   }
   return "";
 }
 
-function findElement() {
+function findElement(): void {
   searchQueryError.value = checkSearchQuery(searchQuery.value);
   if (!searchQueryError.value) {
-    panelMenu.value = searchItem(tree, []);
-    if (!panelMenu.value.length) {
+    isFilter.value = true;
+    searchResults.value = searchItem(tree, []);
+    if (!searchResults.value.length) {
       searchQueryError.value = "No results";
     }
   }
@@ -61,49 +79,44 @@ function searchItem(element: IItem, searchResult: IItem[]): IItem[] {
   return searchResult;
 }
 
-function resetSearchResult() {
-  if (!searchQuery.value && !isFavoriteCategory.value) {
-    panelMenu.value = tree.items;
-  }
-  if (!searchQuery.value && isFavoriteCategory.value) {
-    panelMenu.value = treeStore.getFavorites(tree, []);
+function resetSearchResult(): void {
+  if (!searchQuery.value) {
+    isFilter.value = false;
+    searchResults.value = [];
   }
 }
 
-function switchFavorites(e) {
+function switchFavorites(e): void {
+  isFilter.value = false;
   if (e.target.innerHTML === options.value.favorites) {
     isFavoriteCategory.value = true;
-    panelMenu.value = treeStore.getFavorites(tree, []);
   } else {
     isFavoriteCategory.value = false;
-    panelMenu.value = tree.items;
   }
   searchQueryError.value = "";
   searchQuery.value = "";
   tagForSearch.value = "";
 }
 
-function addTag(key) {
+function addToFavorites(key: string): void {
   useTreeNodes().addToFavorites(key.split("_"));
 }
 
-function onFilter() {
+function onFilter(): void {
   filtersVisibility.value = !filtersVisibility.value;
 }
 
-function changeFilters(value: IItem[], tag) {
+function changeFilters(value: IItem[], tag): void {
   tagForSearch.value = tag;
   searchQueryError.value = "";
   searchQuery.value = "";
+  isFilter.value = true;
   if (value) {
-    panelMenu.value = value;
+    searchResults.value = value;
     onFilter();
   } else {
-    if (isFavoriteCategory.value) {
-      panelMenu.value = treeStore.getFavorites(tree, []);
-    } else {
-      panelMenu.value = tree.items;
-    }
+    searchResults.value = [];
+    isFilter.value = false;
   }
 }
 </script>
@@ -118,10 +131,7 @@ function changeFilters(value: IItem[], tag) {
     <Filters @change-filters="changeFilters" :tag-for-search="tagForSearch" />
   </Sidebar>
 
-  <nav
-    class="left-menu w-25rem p-1 border-round-xl h-full"
-    :class="tree.items.length > 14 ? 'overflow-y-scroll' : 'overflow-hidden'"
-  >
+  <nav class="left-menu w-25rem p-1 border-round-xl h-full overflow-auto">
     <Button
       @click="showDialog"
       class="p-button-outlined w-full h-4rem"
@@ -160,7 +170,13 @@ function changeFilters(value: IItem[], tag) {
       Filtered by tag: {{ tagForSearch }}
     </div>
 
-    <PanelMenu class="border-0 mt-2" :model="panelMenu">
+    <PanelMenu
+      v-show="!searchResults.length && !isFilter"
+      :model="
+        isFavoriteCategory ? treeStore.getFavorites(tree, []) : tree.items
+      "
+      class="border-0 mt-2"
+    >
       <template #item="{ item }">
         <RouterLink
           class="w-full flex align-items-center py-2 px-2 relative"
@@ -179,7 +195,41 @@ function changeFilters(value: IItem[], tag) {
             {{ item.label }}
           </div>
           <div
-            @click.stop.prevent="() => addTag(item.key)"
+            @click.stop.prevent="() => addToFavorites(item.key)"
+            class="absolute border-circle` heart"
+          >
+            <i
+              class="pi pi-heart text-color p-2 border-circle"
+              :class="item.favorites ? 'bg-pink-300 ' : 'bg-white'"
+            />
+          </div>
+        </RouterLink>
+      </template>
+    </PanelMenu>
+    <PanelMenu
+      class="border-0 mt-2"
+      v-show="searchResults.length"
+      :model="searchResults"
+    >
+      <template #item="{ item }">
+        <RouterLink
+          class="w-full flex align-items-center py-2 px-2 relative"
+          :to="item.to"
+        >
+          <Image
+            :src="
+              item.icon ||
+              (item.items ? tree.defaultFolderIcon : tree.defaultItemIcon)
+            "
+            width="32"
+            height="32"
+            imageClass="border-circle inline"
+          />
+          <div class="ml-2">
+            {{ item.label }}
+          </div>
+          <div
+            @click.stop.prevent="() => addToFavorites(item.key)"
             class="absolute border-circle` heart"
           >
             <i
@@ -191,7 +241,7 @@ function changeFilters(value: IItem[], tag) {
       </template>
     </PanelMenu>
     <div
-      v-if="!panelMenu.length"
+      v-if="isNoItems"
       class="text-2xl text-red-600 flex justify-content-center"
     >
       No items

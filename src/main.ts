@@ -27,6 +27,7 @@ import FileUpload from "primevue/fileupload";
 import SelectButton from "primevue/selectbutton";
 import Sidebar from "primevue/sidebar";
 import Dropdown from "primevue/dropdown";
+import Tag from "primevue/tag";
 
 import App from "./App.vue";
 import router from "./router";
@@ -53,5 +54,6 @@ app.component("FileUpload", FileUpload);
 app.component("SelectButton", SelectButton);
 app.component("Sidebar", Sidebar);
 app.component("Dropdown", Dropdown);
+app.component("Tag", Tag);
 
 app.mount("#app");
