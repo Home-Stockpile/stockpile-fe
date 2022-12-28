@@ -14,28 +14,24 @@ const route = useRoute();
 const treeStore = useTreeNodes();
 const tree = treeStore.getTree;
 const defaultIcons = treeStore.getDefaultIcons;
-
+const dialogType = ref<AddDialog>(DialogTypes.section);
 const currentItem = ref<IItem>({});
 
 const nestingLevel = computed(
   () => String(route.params.key).split("_").length < 3
 );
 const dialogVisibility = ref(false);
-const editDialogVisibility = ref(false);
 
-const dialogType = ref<AddDialog>(DialogTypes.section);
+const isEdit = ref(false);
 
-function showDialog(type: AddDialog): void {
+function showDialog(type: AddDialog, isEditDialog: boolean): void {
   dialogType.value = type;
   dialogVisibility.value = true;
+  isEdit.value = isEditDialog;
 }
-function showEditDialog(type: AddDialog): void {
-  dialogType.value = type;
-  editDialogVisibility.value = true;
-}
+
 function hideDialog(): void {
   dialogVisibility.value = false;
-  editDialogVisibility.value = false;
 }
 
 function removeItem(): void {
@@ -72,16 +68,13 @@ watch(
 
 <template>
   <AddItemDialog
+    v-if="dialogVisibility"
     @hide-dialog="hideDialog"
-    :dialog-visibility="dialogVisibility"
-    :dialog-type="dialogType"
-  />
-  <AddItemDialog
-    @hide-dialog="hideDialog"
-    :dialog-visibility="editDialogVisibility"
     :current-item="currentItem"
     :dialog-type="dialogType"
+    :is-edit="isEdit"
   />
+
   <div v-if="currentItem">
     <Toolbar class="border-0 p-2">
       <template #start>
@@ -100,16 +93,16 @@ watch(
         <Button
           label="Add item"
           class="p-button-success"
-          @click="() => showDialog(DialogTypes.item)"
+          @click="() => showDialog(DialogTypes.item, false)"
         />
         <Button
           v-show="nestingLevel"
-          @click="() => showDialog(DialogTypes.section)"
+          @click="() => showDialog(DialogTypes.section, false)"
           label="Add place"
           class="p-button-success ml-4"
         />
         <Button
-          @click="showEditDialog(DialogTypes.section)"
+          @click="showDialog(DialogTypes.section, true)"
           label="Edit"
           class="p-button-success ml-3"
         />

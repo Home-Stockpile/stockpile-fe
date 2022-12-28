@@ -119,9 +119,10 @@ function changeFilters(value: IItem[], tag): void {
 
 <template>
   <AddItemDialog
+    v-if="dialogVisibility"
     @hide-dialog="hideDialog"
-    :dialog-visibility="dialogVisibility"
     :dialog-type="DialogTypes.root"
+    :is-edit="false"
   />
   <Sidebar v-model:visible="filtersVisibility" :baseZIndex="2">
     <Filters @change-filters="changeFilters" :tag-for-search="tagForSearch" />

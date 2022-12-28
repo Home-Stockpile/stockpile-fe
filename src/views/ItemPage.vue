@@ -50,10 +50,11 @@ watch(
 
 <template>
   <AddItemDialog
+    v-if="dialogVisibility"
     @hide-dialog="hideDialog"
-    :dialog-visibility="dialogVisibility"
     :current-item="currentItem"
     :dialog-type="DialogTypes.item"
+    :is-edit="true"
   />
 
   <div v-if="currentItem">

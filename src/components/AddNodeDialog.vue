@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useTreeNodes } from "@/store/treeNodes";
-import { onMounted, onUpdated, reactive, ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { AddDialog, DialogTypes } from "@/types/dialog";
 import { IItem } from "@/types/treeNodes";
@@ -9,9 +9,9 @@ import { FileUploadSelectEvent } from "primevue/fileupload";
 import { ITag } from "@/types/tags";
 
 interface IAddItemDialog {
-  dialogVisibility: boolean;
   currentItem?: IItem;
   dialogType?: AddDialog;
+  isEdit?: boolean;
 }
 const props = defineProps<IAddItemDialog>();
 const emit = defineEmits(["hide-dialog"]);
@@ -22,14 +22,14 @@ const tree = treeStore.getTree;
 const route = useRoute();
 const newTagName = ref("");
 
-const formErrors = reactive({
+const formErrors = ref({
   errorLabel: "",
   errorTag: "",
   errorQuantity: "",
   errorDescription: "",
 });
 
-const addForm = reactive<IItem>({
+const addForm = ref<IItem>({
   label: "",
   description: "",
   quantity: 0,
@@ -38,17 +38,17 @@ const addForm = reactive<IItem>({
 });
 
 function hideDialog(): void {
-  formErrors.errorLabel = "";
-  formErrors.errorTag = "";
-  formErrors.errorQuantity = "";
-  formErrors.errorDescription = "";
+  formErrors.value.errorLabel = "";
+  formErrors.value.errorTag = "";
+  formErrors.value.errorQuantity = "";
+  formErrors.value.errorDescription = "";
 
   newTagName.value = "";
-  addForm.label = "";
-  addForm.description = "";
-  addForm.icon = "";
-  addForm.quantity = 0;
-  addForm.tags = [];
+  addForm.value.label = "";
+  addForm.value.description = "";
+  addForm.value.icon = "";
+  addForm.value.quantity = 0;
+  addForm.value.tags = [];
   emit("hide-dialog");
 }
 
@@ -81,7 +81,7 @@ function validateLabel(label: string, path): string {
 
 function validateTag(tag: string): string {
   if (
-    addForm.tags.find(
+    addForm.value.tags.find(
       (tag) => tag.name.toLowerCase() === newTagName.value.toLowerCase()
     )
   ) {
@@ -120,13 +120,13 @@ function editItem(newItem: IItem): void {
 function modifyItem(newItem) {
   newItem = {
     ...newItem,
-    quantity: addForm.quantity,
-    tags: addForm.tags,
-    description: addForm.description,
+    quantity: addForm.value.quantity,
+    tags: addForm.value.tags,
+    description: addForm.value.description,
   };
 
-  if (!formErrors.errorLabel) {
-    if (props.currentItem) {
+  if (!formErrors.value.errorLabel) {
+    if (props.isEdit) {
       editItem(newItem);
     } else {
       addTreeNode(newItem, "/item/");
@@ -139,14 +139,18 @@ function modifySection(newItem: IItem) {
     ...newItem,
     items: [],
   };
-  formErrors.errorQuantity = validateQuantity(addForm.quantity); //quantity -> count
-  formErrors.errorDescription = validateName(addForm.description, 264);
+  formErrors.value.errorQuantity = validateQuantity(addForm.value.quantity); //quantity -> count
+  formErrors.value.errorDescription = validateName(
+    addForm.value.description,
+    264
+  );
   if (
-    !formErrors.errorLabel &&
-    !formErrors.errorQuantity &&
-    !formErrors.errorDescription
+    !formErrors.value.errorLabel &&
+    !formErrors.value.errorQuantity &&
+    !formErrors.value.errorDescription
   ) {
-    if (props.currentItem) {
+    if (props.isEdit) {
+      newItem.items = props.currentItem.items;
       editItem(newItem);
     } else {
       addTreeNode(newItem, "/section/");
@@ -155,13 +159,13 @@ function modifySection(newItem: IItem) {
 }
 
 function validateForm(): void {
-  formErrors.errorLabel = validateLabel(
-    String(addForm.label),
+  formErrors.value.errorLabel = validateLabel(
+    String(addForm.value.label),
     getRootItemPath()
   );
   let newItem: IItem = {
-    label: addForm.label,
-    icon: addForm.icon,
+    label: addForm.value.label,
+    icon: addForm.value.icon,
     favorites: false,
   };
   if (isItem()) {
@@ -172,53 +176,41 @@ function validateForm(): void {
 }
 
 function addTag(): void {
-  formErrors.errorTag = validateTag(newTagName.value);
+  formErrors.value.errorTag = validateTag(newTagName.value);
 
-  if (!formErrors.errorTag) {
-    addForm.tags.push({ name: newTagName.value, favorite: false });
+  if (!formErrors.value.errorTag) {
+    addForm.value.tags.push({ name: newTagName.value, favorite: false });
     newTagName.value = "";
   }
 }
 
 function removeTag(tagForRemove: ITag): void {
-  addForm.tags = addForm.tags.filter((tag) => tag.name !== tagForRemove.name);
-  formErrors.errorTag = "";
+  addForm.value.tags = addForm.value.tags.filter(
+    (tag) => tag.name !== tagForRemove.name
+  );
+  formErrors.value.errorTag = "";
 }
 
 function addIcon(e: FileUploadSelectEvent): void {
-  addForm.icon = e.files[0].objectURL;
+  addForm.value.icon = e.files[0].objectURL;
 }
 function removeIcon(): void {
-  addForm.icon = "";
+  addForm.value.icon = "";
 }
 
 onMounted(() => {
-  if (props.currentItem) {
-    addForm.label = props.currentItem.label;
-    addForm.description = props.currentItem.description || "";
-    addForm.quantity = props.currentItem.quantity || 0;
-    addForm.icon = props.currentItem.icon || "";
-    addForm.tags = props.currentItem.tags || [];
-  }
-});
-onUpdated(() => {
-  if (props.currentItem) {
-    addForm.label = props.currentItem.label;
-    addForm.description = props.currentItem.description || "";
-    addForm.quantity = props.currentItem.quantity || 0;
-    addForm.icon = props.currentItem.icon || "";
-    addForm.tags = props.currentItem.tags || [];
+  if (props.isEdit) {
+    addForm.value.label = props.currentItem.label;
+    addForm.value.description = props.currentItem.description || "";
+    addForm.value.quantity = props.currentItem.quantity || 0;
+    addForm.value.icon = props.currentItem.icon || "";
+    addForm.value.tags = props.currentItem.tags || [];
   }
 });
 </script>
 
 <template>
-  <Dialog
-    class="w-30rem"
-    :visible="props.dialogVisibility"
-    :modal="true"
-    :closable="false"
-  >
+  <Dialog class="w-30rem" :visible="true" :modal="true" :closable="false">
     <h3 v-if="isItem()">Enter name of new item :</h3>
     <h3 v-else>Enter name of new place:</h3>
     <InputText
