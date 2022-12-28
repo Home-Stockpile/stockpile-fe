@@ -49,7 +49,7 @@ function onResetFilters(): void {
 }
 
 function setPrevFilterValue(): void {
-  if (allTags && allTags) {
+  if (favoriteTags.value.find((tag) => tag.name === props.tagForSearch)) {
     selectedFavTag.value = props.tagForSearch;
   } else {
     selectedTag.value = props.tagForSearch;
@@ -82,7 +82,7 @@ onMounted(() => {
   <h3>Filter by favorite tag:</h3>
   <Dropdown
     v-model="selectedFavTag"
-    :options="allTags && favoriteTags"
+    :options="favoriteTags"
     class="mt-2 w-full"
     optionLabel="name"
     optionValue="name"
