@@ -3,6 +3,7 @@ import type { IItem } from "@/types/treeNodes";
 import { nextNodeKey } from "@/functions/nextNodeKey";
 import { sortByType } from "@/functions/sortByType";
 import { ITag } from "@/types/tags";
+import { computed } from "vue";
 
 export const useTreeNodes = defineStore("treeNodes", {
   state: () => {
@@ -234,7 +235,7 @@ export const useTreeNodes = defineStore("treeNodes", {
         }
         return getBreadcrumbs(findItem.items, path, breadcrumbs);
       },
-    getTags: () =>
+    getTags: (state) => {
       function getTags(element: IItem, searchResult: ITag[]): ITag[] {
         if (!element.items) {
           element.tags.forEach((eTag) => {
@@ -252,6 +253,11 @@ export const useTreeNodes = defineStore("treeNodes", {
           return treeNode;
         }
         return searchResult;
-      },
+      }
+
+      return getTags(state.tree, []);
+    },
+    getFavoriteTags: (state) =>
+      computed(() => state.getTags.filter((tag) => tag.favorite)),
   },
 });
