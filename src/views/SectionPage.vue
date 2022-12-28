@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useTreeNodes } from "@/store/treeNodes";
-import AddItemDialog from "@/components/AddItemDialog.vue";
+import AddItemDialog from "@/components/AddNodeDialog.vue";
 import { AddDialog, DialogTypes } from "@/types/dialog";
 
 import type { IItem } from "@/types/treeNodes";
@@ -13,20 +13,23 @@ const route = useRoute();
 
 const treeStore = useTreeNodes();
 const tree = treeStore.getTree;
-
-const breadcrumbs = ref<IItem[]>([]);
+const defaultIcons = treeStore.getDefaultIcons;
+const dialogType = ref<AddDialog>(DialogTypes.section);
 const currentItem = ref<IItem>({});
 
 const nestingLevel = computed(
-  () => String(route.params.key).split("_").length < 2
+  () => String(route.params.key).split("_").length < 3
 );
 const dialogVisibility = ref(false);
-const dialogType = ref<AddDialog>(DialogTypes.section);
 
-function showDialog(type: AddDialog): void {
+const isEdit = ref(false);
+
+function showDialog(type: AddDialog, isEditDialog: boolean): void {
   dialogType.value = type;
   dialogVisibility.value = true;
+  isEdit.value = isEditDialog;
 }
+
 function hideDialog(): void {
   dialogVisibility.value = false;
 }
@@ -50,11 +53,6 @@ onMounted(() => {
     tree,
     String(route.params.key).split("_")
   );
-  breadcrumbs.value = treeStore.getBreadcrumbs(
-    tree.items,
-    String(route.params.key).split("_"),
-    []
-  );
 });
 
 watch(
@@ -64,35 +62,25 @@ watch(
       tree,
       String(route.params.key).split("_")
     );
-    breadcrumbs.value = treeStore.getBreadcrumbs(
-      tree.items,
-      String(route.params.key).split("_"),
-      []
-    );
   }
 );
 </script>
 
 <template>
   <AddItemDialog
+    v-if="dialogVisibility"
     @hide-dialog="hideDialog"
-    :dialog-visibility="dialogVisibility"
+    :current-item="currentItem"
     :dialog-type="dialogType"
+    :is-edit="isEdit"
   />
 
   <div v-if="currentItem">
-    <Breadcrumb
-      class="overflow-x-scroll md:overflow-hidden"
-      :home="tree"
-      :model="breadcrumbs"
-      aria-label="breadcrumb"
-    />
-
-    <Toolbar class="mt-3 border-0 p-2">
+    <Toolbar class="border-0 p-2">
       <template #start>
         <div class="flex align-items-center">
           <Image
-            :src="currentItem.icon || tree.defaultFolderIcon"
+            :src="currentItem.icon || defaultIcons.itemIcon"
             width="32"
             height="32"
             imageClass="border-circle inline mr-2"
@@ -105,17 +93,23 @@ watch(
         <Button
           label="Add item"
           class="p-button-success"
-          @click="() => showDialog(DialogTypes.item)"
+          @click="() => showDialog(DialogTypes.item, false)"
         />
         <Button
           v-show="nestingLevel"
-          @click="() => showDialog(DialogTypes.section)"
-          label="Add subsection"
+          @click="() => showDialog(DialogTypes.section, false)"
+          label="Add place"
           class="p-button-success ml-4"
         />
         <Button
+          @click="showDialog(DialogTypes.section, true)"
+          label="Edit"
+          class="p-button-success ml-3"
+        />
+
+        <Button
           @click="removeItem"
-          label="Delete section"
+          label="Delete place"
           class="p-button-danger ml-3"
         />
       </template>

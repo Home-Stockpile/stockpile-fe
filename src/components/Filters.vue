@@ -9,8 +9,8 @@ const emit = defineEmits(["change-filters"]);
 const treeStore = useTreeNodes();
 const tree = treeStore.getTree;
 
-const allTags = treeStore.getTags(tree, []);
-
+const allTags = treeStore.getTags;
+const favoriteTags = treeStore.getFavoriteTags;
 const tagError = ref("");
 const selectedFavTag = ref("");
 const selectedTag = ref("");
@@ -49,16 +49,17 @@ function onResetFilters(): void {
 }
 
 function setPrevFilterValue(): void {
-  if (
-    allTags &&
-    allTags
-      .filter((tag) => tag.favorite)
-      .find((tag) => tag.name === props.tagForSearch)
-  ) {
+  if (favoriteTags.value.find((tag) => tag.name === props.tagForSearch)) {
     selectedFavTag.value = props.tagForSearch;
   } else {
     selectedTag.value = props.tagForSearch;
   }
+}
+function toggleFavorites(name, value) {
+  treeStore.toggleTagFavorites(tree, {
+    name: name,
+    favorite: value,
+  });
 }
 
 watch(selectedTag, (value) => {
@@ -81,7 +82,7 @@ onMounted(() => {
   <h3>Filter by favorite tag:</h3>
   <Dropdown
     v-model="selectedFavTag"
-    :options="allTags && allTags.filter((tag) => tag.favorite)"
+    :options="favoriteTags"
     class="mt-2 w-full"
     optionLabel="name"
     optionValue="name"
@@ -93,10 +94,7 @@ onMounted(() => {
         <i
           @click.stop.prevent="
             () =>
-              treeStore.addTagToFavorites(tree, {
-                name: slotProps.option.name,
-                favorite: slotProps.option.favorite,
-              })
+              toggleFavorites(slotProps.option.name, slotProps.option.favorite)
           "
           class="pi pi-heart text-color p-2 border-circle"
           :class="slotProps.option.favorite ? 'bg-pink-300 ' : 'bg-white'"
@@ -120,10 +118,7 @@ onMounted(() => {
         <i
           @click.stop.prevent="
             () =>
-              treeStore.addTagToFavorites(tree, {
-                name: slotProps.option.name,
-                favorite: slotProps.option.favorite,
-              })
+              toggleFavorites(slotProps.option.name, slotProps.option.favorite)
           "
           class="pi pi-heart text-color p-2 border-circle"
           :class="slotProps.option.favorite ? 'bg-pink-300 ' : 'bg-white'"

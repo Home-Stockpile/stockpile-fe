@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AddItemDialog from "@/components/AddItemDialog.vue";
+import AddItemDialog from "@/components/AddNodeDialog.vue";
 import { useTreeNodes } from "@/store/treeNodes";
 import { computed, ref } from "vue";
 import { IItem } from "@/types/treeNodes";
@@ -17,7 +17,9 @@ const searchResults = ref<IItem[]>([]);
 const filtersVisibility = ref(false);
 const tagForSearch = ref("");
 const isFilter = ref(false);
-const isNoItems = computed(() => {
+const defaultIcons = treeStore.getDefaultIcons;
+
+const areNoItems = computed(() => {
   if (!tree.items) {
     return true;
   }
@@ -27,11 +29,7 @@ const isNoItems = computed(() => {
   if (!treeStore.getFavorites(tree, [])) {
     return true;
   }
-  if (!treeStore.getFavorites(tree, []).length && isFavoriteCategory.value) {
-    return true;
-  }
-
-  return false;
+  return !treeStore.getFavorites(tree, []).length && isFavoriteCategory.value;
 });
 
 function hideDialog(): void {
@@ -42,7 +40,7 @@ function showDialog(): void {
   dialogVisibility.value = true;
 }
 
-function checkSearchQuery(query: string): string {
+function validateSearchQuery(query: string): string {
   if (!query.trim()) {
     return "Field can't be empty";
   }
@@ -50,13 +48,14 @@ function checkSearchQuery(query: string): string {
 }
 
 function findElement(): void {
-  searchQueryError.value = checkSearchQuery(searchQuery.value);
-  if (!searchQueryError.value) {
-    isFilter.value = true;
-    searchResults.value = searchItem(tree, []);
-    if (!searchResults.value.length) {
-      searchQueryError.value = "No results";
-    }
+  searchQueryError.value = validateSearchQuery(searchQuery.value);
+  if (searchQueryError.value) {
+    return;
+  }
+  isFilter.value = true;
+  searchResults.value = searchItem(tree, []);
+  if (!searchResults.value.length) {
+    searchQueryError.value = "No results";
   }
 }
 
@@ -88,18 +87,15 @@ function resetSearchResult(): void {
 
 function switchFavorites(e): void {
   isFilter.value = false;
-  if (e.target.innerHTML === options.value.favorites) {
-    isFavoriteCategory.value = true;
-  } else {
-    isFavoriteCategory.value = false;
-  }
+  searchResults.value = [];
+  isFavoriteCategory.value = e.target.innerHTML === options.value.favorites;
   searchQueryError.value = "";
   searchQuery.value = "";
   tagForSearch.value = "";
 }
 
-function addToFavorites(key: string): void {
-  useTreeNodes().addToFavorites(key.split("_"));
+function toggleFavorites(key: string): void {
+  useTreeNodes().toggleFavorites(key.split("_"));
 }
 
 function onFilter(): void {
@@ -123,9 +119,10 @@ function changeFilters(value: IItem[], tag): void {
 
 <template>
   <AddItemDialog
+    v-if="dialogVisibility"
     @hide-dialog="hideDialog"
-    :dialog-visibility="dialogVisibility"
     :dialog-type="DialogTypes.root"
+    :is-edit="false"
   />
   <Sidebar v-model:visible="filtersVisibility" :baseZIndex="2">
     <Filters @change-filters="changeFilters" :tag-for-search="tagForSearch" />
@@ -185,7 +182,7 @@ function changeFilters(value: IItem[], tag): void {
           <Image
             :src="
               item.icon ||
-              (item.items ? tree.defaultFolderIcon : tree.defaultItemIcon)
+              (item.items ? defaultIcons.folderIcon : defaultIcons.itemIcon)
             "
             width="32"
             height="32"
@@ -195,7 +192,7 @@ function changeFilters(value: IItem[], tag): void {
             {{ item.label }}
           </div>
           <div
-            @click.stop.prevent="() => addToFavorites(item.key)"
+            @click.stop.prevent="() => toggleFavorites(item.key)"
             class="absolute border-circle` heart"
           >
             <i
@@ -219,7 +216,7 @@ function changeFilters(value: IItem[], tag): void {
           <Image
             :src="
               item.icon ||
-              (item.items ? tree.defaultFolderIcon : tree.defaultItemIcon)
+              (item.items ? defaultIcons.folderIcon : defaultIcons.itemIcon)
             "
             width="32"
             height="32"
@@ -229,7 +226,7 @@ function changeFilters(value: IItem[], tag): void {
             {{ item.label }}
           </div>
           <div
-            @click.stop.prevent="() => addToFavorites(item.key)"
+            @click.stop.prevent="() => toggleFavorites(item.key)"
             class="absolute border-circle` heart"
           >
             <i
@@ -241,7 +238,7 @@ function changeFilters(value: IItem[], tag): void {
       </template>
     </PanelMenu>
     <div
-      v-if="isNoItems"
+      v-if="areNoItems"
       class="text-2xl text-red-600 flex justify-content-center"
     >
       No items

@@ -1,6 +1,7 @@
 import { createApp } from "vue";
 import { createPinia } from "pinia";
 import PrimeVue from "primevue/config";
+import router from "./router";
 
 import "./assets/reset.css";
 import "./assets/base.css";
@@ -8,8 +9,9 @@ import "./assets/base.css";
 import "primevue/resources/themes/lara-light-purple/theme.css";
 import "primevue/resources/primevue.min.css";
 import "primeicons/primeicons.css";
+import "primeflex/primeflex.css";
 
-import "/node_modules/primeflex/primeflex.css";
+import App from "./App.vue";
 
 import Tree from "primevue/tree";
 import PanelMenu from "primevue/panelmenu";
@@ -28,9 +30,6 @@ import SelectButton from "primevue/selectbutton";
 import Sidebar from "primevue/sidebar";
 import Dropdown from "primevue/dropdown";
 import Tag from "primevue/tag";
-
-import App from "./App.vue";
-import router from "./router";
 
 const app = createApp(App);
 
