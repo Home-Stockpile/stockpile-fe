@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AddItemDialog from "@/components/AddItemDialog.vue";
+import AddItemDialog from "@/components/AddNodeDialog.vue";
 import { useTreeNodes } from "@/store/treeNodes";
 import { computed, ref } from "vue";
 import { IItem } from "@/types/treeNodes";

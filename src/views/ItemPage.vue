@@ -5,7 +5,7 @@ import { useTreeNodes } from "@/store/treeNodes";
 import type { IItem } from "@/types/treeNodes";
 import DefaultPage from "@/views/DefaultPage.vue";
 import { DialogTypes } from "@/types/dialog";
-import AddItemDialog from "@/components/AddItemDialog.vue";
+import AddItemDialog from "@/components/AddNodeDialog.vue";
 import router from "@/router";
 import { InputNumberInputEvent } from "primevue/inputnumber";
 const route = useRoute();
