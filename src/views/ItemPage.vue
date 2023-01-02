@@ -5,15 +5,16 @@ import { useTreeNodes } from "@/store/treeNodes";
 import type { IItem } from "@/types/treeNodes";
 import DefaultPage from "@/views/DefaultPage.vue";
 import { DialogTypes } from "@/types/dialog";
-import AddItemDialog from "@/components/AddNodeDialog.vue";
+import AddNodeDialog from "@/components/AddNodeDialog.vue";
 import router from "@/router";
-import { InputNumberInputEvent } from "primevue/inputnumber";
+import { validateQuantity } from "@/functions/validateQuantity";
 const route = useRoute();
 const treeStore = useTreeNodes();
 const tree = treeStore.getTree;
 const currentItem = ref<IItem>({});
 const dialogVisibility = ref(false);
 const defaultIcons = treeStore.getDefaultIcons;
+const errorQuantity = ref("");
 
 function showDialog(): void {
   dialogVisibility.value = true;
@@ -21,8 +22,12 @@ function showDialog(): void {
 function hideDialog(): void {
   dialogVisibility.value = false;
 }
-function changeQuantity(e: InputNumberInputEvent): void {
-  treeStore.editItem({ ...currentItem.value, quantity: Number(e.value) });
+function changeQuantity(e): void {
+  if (validateQuantity(e.target.value)) {
+    errorQuantity.value = validateQuantity(e.target.value);
+  } else {
+    treeStore.editItem({ ...currentItem.value, quantity: Number(e.value) });
+  }
 }
 function removeItem(): void {
   router.go(-1);
@@ -49,73 +54,65 @@ watch(
 </script>
 
 <template>
-  <AddItemDialog
+  <AddNodeDialog
     v-if="dialogVisibility"
     @hide-dialog="hideDialog"
     :current-item="currentItem"
     :dialog-type="DialogTypes.item"
     :is-edit="true"
   />
-
-  <div v-if="currentItem">
-    <div class="mt-3 mb-1 text-lg">
+  <div class="q-pa-sm bg-white">
+    <div>
       Tags:
-      <Tag
+      <q-chip
         v-for="tag in currentItem.tags"
         :key="tag.name"
-        class="ml-2 relative"
-        :value="tag.name"
-      />
+        color="primary"
+        text-color="white"
+      >
+        {{ tag.name }}
+      </q-chip>
     </div>
-    <Toolbar class="border-0 p-0 bg-white my-2">
-      <template #start>
-        <div class="flex align-items-center">
-          <Image
-            :src="currentItem.icon || defaultIcons.itemIcon"
-            width="32"
-            height="32"
-            imageClass="border-circle inline mr-2"
-          />
-          <h3 class="text-lg">{{ currentItem.label }}</h3>
-        </div>
-      </template>
 
-      <template #end>
-        <InputNumber
-          :model-value="currentItem.quantity"
-          @input="changeQuantity"
-          showButtons
-          buttonLayout="horizontal"
-          incrementButtonIcon="pi pi-plus"
-          decrementButtonIcon="pi pi-minus"
+    <div class="row items-center justify-between">
+      <div class="row items-center">
+        <q-img
+          :src="currentItem.icon || defaultIcons.itemIcon"
+          width="32px"
+          height="32px"
+          ratio="1"
         />
-      </template>
-    </Toolbar>
-    <div class="mt-2">
-      <h3 class="text-lg">Description:</h3>
-      <div class="mt-3 text-base">{{ currentItem.description }}</div>
+        <div class="q-ml-sm">{{ currentItem.label }}</div>
+      </div>
+
+      <div>
+        <q-input
+          v-model="currentItem.quantity"
+          :error="!!errorQuantity"
+          @input="changeQuantity"
+          type="number"
+        >
+          <template v-slot:error>
+            {{ errorQuantity }}
+          </template>
+        </q-input>
+      </div>
     </div>
 
-    <div class="flex justify-content-end">
-      <Button @click="showDialog" label="Edit" class="p-button-success" />
+    <div class="q-mt-sm">
+      <h6>Description:</h6>
+      <div class="q-mt-sm">{{ currentItem.description }}</div>
+    </div>
 
-      <Button
-        @click="removeItem"
-        label="Delete item"
-        class="p-button-danger ml-3"
-      />
+    <div class="row justify-end">
+      <q-btn @click="showDialog" label="Edit" color="primary" class="q-mr-sm" />
+      <q-btn @click="removeItem" label="Delete place" color="red" />
     </div>
   </div>
-
-  <DefaultPage v-else />
 </template>
 
 <style scoped>
 :deep(.p-inputtext) {
   width: 3.5rem;
-}
-.p-chip {
-  background-color: var(--primary-color);
-  color: var(--surface-a);
 }
 </style>

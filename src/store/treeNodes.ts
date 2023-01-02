@@ -197,13 +197,13 @@ export const useTreeNodes = defineStore("treeNodes", {
 
         return getItem(findItem, path);
       },
-    getFavorites: () =>
+    getFavorites: (state) => {
       function getFavorites(element: IItem, searchResult: IItem[]): IItem[] {
         if (element.favorites) {
           searchResult.push(element);
         }
         if (element.items) {
-          let treeNode = null;
+          let treeNode = [];
           element.items.forEach(
             (item) =>
               (treeNode = getFavorites(item, searchResult) || searchResult)
@@ -211,7 +211,9 @@ export const useTreeNodes = defineStore("treeNodes", {
           return treeNode;
         }
         return searchResult;
-      },
+      }
+      return getFavorites(state.tree, []);
+    },
     getBreadcrumbs: () =>
       function getBreadcrumbs(
         item: IItem[],
@@ -246,7 +248,7 @@ export const useTreeNodes = defineStore("treeNodes", {
         }
 
         if (element.items) {
-          let treeNode = null;
+          let treeNode = [];
           element.items.forEach(
             (item) => (treeNode = getTags(item, searchResult) || searchResult)
           );

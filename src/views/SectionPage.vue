@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useTreeNodes } from "@/store/treeNodes";
-import AddItemDialog from "@/components/AddNodeDialog.vue";
+import AddNodeDialog from "@/components/AddNodeDialog.vue";
 import { AddDialog, DialogTypes } from "@/types/dialog";
 
 import type { IItem } from "@/types/treeNodes";
@@ -65,9 +65,8 @@ watch(
   }
 );
 </script>
-
 <template>
-  <AddItemDialog
+  <AddNodeDialog
     v-if="dialogVisibility"
     @hide-dialog="hideDialog"
     :current-item="currentItem"
@@ -75,45 +74,41 @@ watch(
     :is-edit="isEdit"
   />
 
-  <div v-if="currentItem">
-    <Toolbar class="border-0 p-2">
-      <template #start>
-        <div class="flex align-items-center">
-          <Image
-            :src="currentItem.icon || defaultIcons.itemIcon"
-            width="32"
-            height="32"
-            imageClass="border-circle inline mr-2"
-          />
-          <div>{{ currentItem.label }}</div>
-        </div>
-      </template>
-
-      <template #end>
-        <Button
-          label="Add item"
-          class="p-button-success"
-          @click="() => showDialog(DialogTypes.item, false)"
+  <div class="q-pa-sm bg-white">
+    <div class="row justify-between bg-white q-pa-sm">
+      <div class="row items-center">
+        <q-img
+          :src="currentItem.icon || defaultIcons.itemIcon"
+          width="32px"
+          height="32px"
+          ratio="1"
         />
-        <Button
+        <div class="q-ml-sm">{{ currentItem.label }}</div>
+      </div>
+
+      <div>
+        <q-btn
+          label="Add item"
+          @click="() => showDialog(DialogTypes.item, false)"
+          class="q-mr-sm"
+          color="primary"
+        />
+        <q-btn
           v-show="nestingLevel"
           @click="() => showDialog(DialogTypes.section, false)"
           label="Add place"
-          class="p-button-success ml-4"
+          color="primary"
+          class="q-mr-sm"
         />
-        <Button
+        <q-btn
           @click="showDialog(DialogTypes.section, true)"
           label="Edit"
-          class="p-button-success ml-3"
+          color="primary"
+          class="q-mr-sm"
         />
 
-        <Button
-          @click="removeItem"
-          label="Delete place"
-          class="p-button-danger ml-3"
-        />
-      </template>
-    </Toolbar>
+        <q-btn @click="removeItem" label="Delete place" y color="red" />
+      </div>
+    </div>
   </div>
-  <DefaultPage v-else />
 </template>

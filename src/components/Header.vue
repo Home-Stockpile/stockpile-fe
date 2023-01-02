@@ -7,9 +7,15 @@ import { IItem } from "@/types/treeNodes";
 const route = useRoute();
 const treeStore = useTreeNodes();
 const tree = treeStore.getTree;
+const emit = defineEmits(["toggle-navigation-drawer", "toggle-tree-drawer"]);
 
 const breadcrumbs = ref<IItem[]>([]);
-
+function toggleNavigationDrawer() {
+  emit("toggle-navigation-drawer");
+}
+function toggleTreeDrawer() {
+  emit("toggle-tree-drawer");
+}
 onMounted(() => {
   if (route.params.key) {
     breadcrumbs.value = treeStore.getBreadcrumbs(
@@ -22,28 +28,39 @@ onMounted(() => {
 watch(
   () => route.params.key,
   () => {
-    if (route.params.key) {
-      breadcrumbs.value = treeStore.getBreadcrumbs(
-        tree.items,
-        String(route.params.key).split("_"),
-        []
-      );
-    }
+    breadcrumbs.value = treeStore.getBreadcrumbs(
+      tree.items,
+      String(route.params.key).split("_"),
+      []
+    );
   }
 );
 </script>
 <template>
-  <header class="header border-round-xl">
-    <Breadcrumb
-      class="overflow-x-scroll md:overflow-hidden border-0 pt-3"
-      :home="tree"
-      :model="breadcrumbs"
-      aria-label="breadcrumb"
-    />
-  </header>
+  <q-header elevated class="bg-primary text-white">
+    <q-toolbar>
+      <q-btn dense flat round icon="menu" @click="toggleTreeDrawer" />
+
+      <q-toolbar-title> Home stockpile </q-toolbar-title>
+
+      <q-btn dense flat round icon="menu" @click="toggleNavigationDrawer" />
+    </q-toolbar>
+    <q-toolbar class="bg-white">
+      <q-breadcrumbs
+        active-color="primary"
+        separator-color="grey"
+        class="q-pa-xs"
+      >
+        <q-breadcrumbs-el label="Home" to="/" />
+
+        <q-breadcrumbs-el
+          v-if="breadcrumbs[0]"
+          v-for="breadcrumb in breadcrumbs"
+          :key="breadcrumb.key"
+          :label="breadcrumb.label"
+          :to="breadcrumb.to"
+        />
+      </q-breadcrumbs>
+    </q-toolbar>
+  </q-header>
 </template>
-<style scoped>
-.header {
-  background-color: var(--surface-a);
-}
-</style>
