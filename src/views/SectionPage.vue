@@ -6,8 +6,8 @@ import AddNodeDialog from "@/components/AddNodeDialog.vue";
 import { AddDialog, DialogTypes } from "@/types/dialog";
 
 import type { IItem } from "@/types/treeNodes";
-import DefaultPage from "@/views/DefaultPage.vue";
 import router from "@/router";
+import NodeBreadcrumbs from "@/components/NodeBreadcrumbs.vue";
 
 const route = useRoute();
 
@@ -75,7 +75,9 @@ watch(
   />
 
   <div class="q-pa-sm bg-white">
-    <div class="row justify-between bg-white q-pa-sm">
+    <NodeBreadcrumbs />
+
+    <div class="row justify-between bg-white">
       <div class="row items-center">
         <q-img
           :src="currentItem.icon || defaultIcons.itemIcon"

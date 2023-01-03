@@ -3,11 +3,11 @@ import { onBeforeMount, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useTreeNodes } from "@/store/treeNodes";
 import type { IItem } from "@/types/treeNodes";
-import DefaultPage from "@/views/DefaultPage.vue";
 import { DialogTypes } from "@/types/dialog";
 import AddNodeDialog from "@/components/AddNodeDialog.vue";
 import router from "@/router";
 import { validateQuantity } from "@/functions/validateQuantity";
+import NodeBreadcrumbs from "@/components/NodeBreadcrumbs.vue";
 const route = useRoute();
 const treeStore = useTreeNodes();
 const tree = treeStore.getTree;
@@ -61,7 +61,9 @@ watch(
     :dialog-type="DialogTypes.item"
     :is-edit="true"
   />
+
   <div class="q-pa-sm bg-white">
+    <NodeBreadcrumbs />
     <div>
       Tags:
       <q-chip
@@ -110,9 +112,3 @@ watch(
     </div>
   </div>
 </template>
-
-<style scoped>
-:deep(.p-inputtext) {
-  width: 3.5rem;
-}
-</style>
