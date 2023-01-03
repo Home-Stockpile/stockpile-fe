@@ -54,10 +54,12 @@ button::-moz-focus-inner {
     border: 0;
 }
 a,
-a:visited {
+a:visited,
+a:active{
     text-decoration: none;
-    color:black;
+    color: inherit;
 }
+
 a:hover {
     text-decoration: none;
 }

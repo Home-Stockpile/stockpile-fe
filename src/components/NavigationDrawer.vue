@@ -7,14 +7,3 @@ const props = defineProps({ navigationDrawerOpen: Boolean });
     Menu
   </q-drawer>
 </template>
-
-<style scoped>
-:deep(.p-selectbutton > .p-button.p-component) {
-  border-radius: 50%;
-  padding: 0.5rem;
-}
-
-.heart {
-  right: 1rem;
-}
-</style>

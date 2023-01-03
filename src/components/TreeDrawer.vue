@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AddNodeDialog from "@/components/AddNodeDialog.vue";
 import { useTreeNodes } from "@/store/treeNodes";
-import { computed, onUpdated, ref } from "vue";
+import { computed, ref } from "vue";
 import { IItem } from "@/types/treeNodes";
 import Filters from "@/components/Filters.vue";
 import { DialogTypes } from "@/types/dialog";
@@ -53,19 +53,20 @@ function toggleFavorites(key: string): void {
   useTreeNodes().toggleFavorites(key.split("_"));
 }
 
-function onFilter(): void {
-  isFilter.value = !isFilter.value;
+function showFilter(): void {
+  isFilter.value = true;
 }
-
+function hideFilter(): void {
+  isFilter.value = false;
+}
 function changeFilters(value: IItem[], tag): void {
-  tagForSearch.value = tag;
-  searchQuery.value = "";
   if (value) {
+    tagForSearch.value = tag;
+    searchQuery.value = "";
     searchResults.value = value;
-  } else {
-    searchResults.value = [];
   }
-  onFilter();
+
+  hideFilter();
 }
 </script>
 
@@ -76,15 +77,11 @@ function changeFilters(value: IItem[], tag): void {
     :dialog-type="DialogTypes.root"
     :is-edit="false"
   />
-  <q-drawer
-    :model-value="isFilter"
-    side="left"
-    behavior="mobile"
-    @hide="() => (isFilter = false)"
-    overlay
-  >
-    <Filters @change-filters="changeFilters" :tag-for-search="tagForSearch" />
-  </q-drawer>
+  <Filters
+    @change-filters="changeFilters"
+    :tag-for-search="tagForSearch"
+    :is-filter="isFilter"
+  />
 
   <q-drawer :model-value="props.treeDrawerOpen" side="left" bordered>
     <q-input
@@ -118,7 +115,12 @@ function changeFilters(value: IItem[], tag): void {
         </div>
       </div>
       <div class="row">
-        <q-btn @click="onFilter" size="sm" color="primary" icon="filter_alt" />
+        <q-btn
+          @click="showFilter"
+          size="sm"
+          color="primary"
+          icon="filter_alt"
+        />
         <q-btn
           @click="showDialog"
           class="q-ml-sm"
