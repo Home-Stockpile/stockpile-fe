@@ -4,16 +4,15 @@ import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { AddDialog, DialogTypes } from "@/types/dialog";
 import { IItem } from "@/types/treeNodes";
-import type Dialog from "primevue/dialog";
-import { FileUploadSelectEvent } from "primevue/fileupload";
 import { ITag } from "@/types/tags";
+import { validateQuantity } from "@/functions/validateQuantity";
 
-interface IAddItemDialog {
+interface IAddNodeDialog {
   currentItem?: IItem;
   dialogType?: AddDialog;
   isEdit?: boolean;
 }
-const props = defineProps<IAddItemDialog>();
+const props = defineProps<IAddNodeDialog>();
 const emit = defineEmits(["hide-dialog"]);
 
 const treeStore = useTreeNodes();
@@ -90,13 +89,6 @@ function validateTag(tag: string): string {
   return validateName(tag, 15);
 }
 
-function validateQuantity(quantity: number): string {
-  if (quantity > 100) {
-    return "Quantity can't be more then 100";
-  }
-  return "";
-}
-
 function getRootItemPath(): string {
   if (props.dialogType === DialogTypes.root) {
     return "0";
@@ -125,8 +117,18 @@ function modifyItem(newItem) {
     description: addForm.value.description,
   };
 
-  if (!formErrors.value.errorLabel) {
+  formErrors.value.errorQuantity = validateQuantity(addForm.value.quantity);
+  formErrors.value.errorDescription = validateName(
+    addForm.value.description,
+    264
+  );
+  if (
+    !formErrors.value.errorLabel &&
+    !formErrors.value.errorQuantity &&
+    !formErrors.value.errorDescription
+  ) {
     if (props.isEdit) {
+      newItem.items = props.currentItem.items;
       editItem(newItem);
     } else {
       addTreeNode(newItem, "/item/");
@@ -139,18 +141,9 @@ function modifySection(newItem: IItem) {
     ...newItem,
     items: [],
   };
-  formErrors.value.errorQuantity = validateQuantity(addForm.value.quantity); //quantity -> count
-  formErrors.value.errorDescription = validateName(
-    addForm.value.description,
-    264
-  );
-  if (
-    !formErrors.value.errorLabel &&
-    !formErrors.value.errorQuantity &&
-    !formErrors.value.errorDescription
-  ) {
+
+  if (!formErrors.value.errorLabel) {
     if (props.isEdit) {
-      newItem.items = props.currentItem.items;
       editItem(newItem);
     } else {
       addTreeNode(newItem, "/section/");
@@ -191,8 +184,8 @@ function removeTag(tagForRemove: ITag): void {
   formErrors.value.errorTag = "";
 }
 
-function addIcon(e: FileUploadSelectEvent): void {
-  addForm.value.icon = e.files[0].objectURL;
+function addIcon(e): void {
+  addForm.value.icon = URL.createObjectURL(e[0]);
 }
 function removeIcon(): void {
   addForm.value.icon = "";
@@ -210,109 +203,104 @@ onMounted(() => {
 </script>
 
 <template>
-  <Dialog class="w-30rem" :visible="true" :modal="true" :closable="false">
-    <h3 v-if="isItem()">Enter name of new item :</h3>
-    <h3 v-else>Enter name of new place:</h3>
-    <InputText
-      placeholder="Name"
-      v-model.trim="addForm.label"
-      class="w-full mt-2"
-      :class="formErrors.errorLabel && 'p-invalid'"
-      type="text"
-    />
-
-    <small class="ml-2 text-xs text-red-600">{{ formErrors.errorLabel }}</small>
-    <div v-show="isItem()">
-      <h3 class="my-2">Quantity:</h3>
-      <div class="grid p-fluid">
-        <div class="field col-12 mb-0">
-          <InputNumber
+  <q-dialog @hide="hideDialog" :model-value="true">
+    <q-card class="q-pa-md">
+      <q-card-section>
+        <h6 v-if="isItem()">Enter name of new item :</h6>
+        <h6 v-else>Enter name of new place:</h6>
+        <q-input
+          v-model.trim="addForm.label"
+          :error="!!formErrors.errorLabel"
+          placeholder="Name"
+          type="text"
+        >
+          <template v-slot:error> {{ formErrors.errorLabel }} </template>
+        </q-input>
+      </q-card-section>
+      <div v-show="isItem()">
+        <q-card-section>
+          <h6>Quantity:</h6>
+          <q-input
             v-model="addForm.quantity"
-            class="w-full"
-            :class="formErrors.errorQuantity && 'p-invalid'"
-            showButtons
-            buttonLayout="horizontal"
-            decrementButtonClass="p-button-danger"
-            incrementButtonClass="p-button-success"
-            incrementButtonIcon="pi pi-plus"
-            decrementButtonIcon="pi pi-minus"
-          />
-          <small class="ml-2 text-xs text-red-600">{{
-            formErrors.errorQuantity
-          }}</small>
-        </div>
-      </div>
+            :error="!!formErrors.errorQuantity"
+            type="number"
+          >
+            <template v-slot:error>
+              {{ formErrors.errorQuantity }}
+            </template>
+          </q-input>
+        </q-card-section>
 
-      <h3>Tags:</h3>
-      <div class="p-inputgroup mt-2">
-        <InputText
-          v-model="newTagName"
-          placeholder="Tag"
-          :class="formErrors.errorTag && 'p-invalid'"
-        />
-        <Button @click="addTag" label="Add tag" />
-      </div>
-      <small class="ml-2 text-xs text-red-600">{{ formErrors.errorTag }}</small>
-      <div class="flex align-items-center mt-1 mb-1">
-        <div>
-          <Chip
+        <q-card-section>
+          <h6>Tags:</h6>
+          <div class="column">
+            <q-input
+              v-model="newTagName"
+              :error="!!formErrors.errorTag"
+              bottom-slots
+              placeholder="Add your tags"
+              maxlength="12"
+            >
+              <template v-slot:after>
+                <q-btn @click="addTag" round dense flat icon="add" size="lg" />
+              </template>
+              <template v-slot:error>
+                {{ formErrors.errorTag }}
+              </template>
+            </q-input>
+          </div>
+          <q-chip
             v-for="tag in addForm.tags"
-            :label="tag.name"
             :key="tag.name"
-            :value="tag.name"
-            @remove="() => removeTag(tag)"
-            class="relative"
             removable
-          />
-        </div>
+            @remove="() => removeTag(tag)"
+            color="primary"
+            text-color="white"
+          >
+            {{ tag.name }}
+          </q-chip>
+        </q-card-section>
+
+        <q-card-section>
+          <h6>Description:</h6>
+
+          <q-input
+            v-model="addForm.description"
+            :error="!!formErrors.errorDescription"
+            bottom-slots
+            placeholder="Add your description"
+            filled
+            clearable
+            type="textarea"
+          >
+            <template v-slot:error>
+              {{ formErrors.errorDescription }}
+            </template>
+          </q-input>
+        </q-card-section>
       </div>
-
-      <h3 class="my-2">Description:</h3>
-      <Textarea
-        placeholder="Add your description"
-        class="w-full"
-        :class="formErrors.errorDescription && 'p-invalid'"
-        v-model="addForm.description"
-        :autoResize="true"
-        rows="5"
-        cols="30"
-      />
-      <small class="ml-2 text-xs text-red-600">{{
-        formErrors.errorDescription
-      }}</small>
-    </div>
-    <h3 class="my-2">Download your icon:</h3>
-
-    <FileUpload
-      class="p-2"
-      @select="addIcon"
-      @remove="removeIcon"
-      @clear="removeIcon"
-      :multiple="false"
-      accept="image/*"
-      :maxFileSize="1000000"
-    >
-      <template #empty>
-        <p>Drag and drop files to here to upload.</p>
-      </template>
-    </FileUpload>
-    <template #footer>
-      <Button
-        label="Cancel"
-        icon="pi pi-times"
-        @click="hideDialog"
-        class="p-button-text"
-      />
-      <Button label="Save" icon="pi pi-check" @click="validateForm" autofocus />
-    </template>
-  </Dialog>
+      <q-card-section>
+        <h6>Download your icon:</h6>
+        <q-uploader
+          @added="addIcon"
+          @removed="removeIcon"
+          accept=".jpg, image/*"
+          :max-file-size="1000000"
+        />
+      </q-card-section>
+      <q-card-actions class="justify-end q-mt-lg">
+        <q-btn label="Cancel" icon="close" @click="hideDialog" />
+        <q-btn label="Save" icon="check" @click="validateForm" />
+      </q-card-actions>
+    </q-card>
+  </q-dialog>
 </template>
 
 <style scoped>
-:deep(.p-fileupload-file-name) {
-  width: 10rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+:deep(.q-card__section) {
+  padding: 0;
+}
+:deep(.q-field__native) {
+  padding: 0;
 }
 </style>

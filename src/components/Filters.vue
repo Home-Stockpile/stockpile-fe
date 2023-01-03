@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { onMounted, onUpdated, ref, watch } from "vue";
 import { IItem } from "@/types/treeNodes";
 import { useTreeNodes } from "@/store/treeNodes";
 
@@ -13,7 +13,7 @@ const allTags = treeStore.getTags;
 const favoriteTags = treeStore.getFavoriteTags;
 const tagError = ref("");
 const selectedFavTag = ref("");
-const selectedTag = ref("");
+const selectedTag = ref(null);
 
 function filterByTag(
   element: IItem,
@@ -66,11 +66,13 @@ watch(selectedTag, (value) => {
   if (value) {
     selectedFavTag.value = "";
   }
+  tagError.value = "";
 });
 watch(selectedFavTag, (value) => {
   if (value) {
     selectedTag.value = "";
   }
+  tagError.value = "";
 });
 
 onMounted(() => {
@@ -79,70 +81,96 @@ onMounted(() => {
 </script>
 
 <template>
-  <h3>Filter by favorite tag:</h3>
-  <Dropdown
-    v-model="selectedFavTag"
-    :options="favoriteTags"
-    class="mt-2 w-full"
-    optionLabel="name"
-    optionValue="name"
-    placeholder="Select a Tag"
-  >
-    <template #option="slotProps">
-      <div class="p-dropdown-car-option flex justify-content-between">
-        <span class="flex align-items-center">{{ slotProps.option.name }}</span>
-        <i
-          @click.stop.prevent="
-            () =>
-              toggleFavorites(slotProps.option.name, slotProps.option.favorite)
-          "
-          class="pi pi-heart text-color p-2 border-circle"
-          :class="slotProps.option.favorite ? 'bg-pink-300 ' : 'bg-white'"
-        />
-      </div>
-    </template>
-  </Dropdown>
+  <q-card class="q-pa-md full-height">
+    <q-card-section>
+      <h6>Filter by tag:</h6>
+      <q-select
+        filled
+        v-model="selectedTag"
+        :options="allTags"
+        :error="!!tagError"
+        name="name"
+        label="Select tag"
+        color="teal"
+        option-value="name"
+        option-label="name"
+        options-selected-class="text-deep-orange"
+        clearable
+        emit-value
+        map-options
+        bottom-slots
+      >
+        <template v-slot:option="scope">
+          <q-item v-bind="scope.itemProps">
+            <q-item-section>
+              <q-item-label>{{ scope.opt.name }}</q-item-label>
+            </q-item-section>
+            <q-item-section avatar>
+              <div
+                class="row items-center text-h6"
+                @click.stop.prevent="
+                  () => toggleFavorites(scope.opt.name, scope.opt.favorite)
+                "
+              >
+                <q-icon v-if="scope.opt.favorite" name="favorite" />
+                <q-icon v-else name="favorite_border" />
+              </div>
+            </q-item-section>
+          </q-item>
+        </template>
+        <template v-slot:error>
+          {{ tagError }}
+        </template>
+      </q-select>
+    </q-card-section>
 
-  <h3 class="mt-2">Filter by tag:</h3>
-  <Dropdown
-    v-model="selectedTag"
-    :options="allTags"
-    class="mt-2 w-full"
-    optionLabel="name"
-    optionValue="name"
-    placeholder="Select a Tag"
-  >
-    <template #option="slotProps">
-      <div class="p-dropdown-car-option flex justify-content-between">
-        <span class="flex align-items-center">{{ slotProps.option.name }}</span>
-        <i
-          @click.stop.prevent="
-            () =>
-              toggleFavorites(slotProps.option.name, slotProps.option.favorite)
-          "
-          class="pi pi-heart text-color p-2 border-circle"
-          :class="slotProps.option.favorite ? 'bg-pink-300 ' : 'bg-white'"
-        />
-      </div>
-    </template>
-  </Dropdown>
-  <small class="ml-2 text-xs text-red-600">{{ tagError || "" }}</small>
+    <q-card-section>
+      <h6>Filter by favorite tag:</h6>
+      <q-select
+        filled
+        v-model="selectedFavTag"
+        :options="favoriteTags"
+        :error="!!tagError"
+        name="name"
+        label="Select tag"
+        color="teal"
+        option-value="name"
+        option-label="name"
+        options-selected-class="text-deep-orange"
+        clearable
+        emit-value
+        map-options
+        bottom-slots
+      >
+        <template v-slot:option="scope">
+          <q-item v-bind="scope.itemProps">
+            <q-item-section>
+              <q-item-label>{{ scope.opt.name }}</q-item-label>
+            </q-item-section>
+            <q-item-section avatar>
+              <div
+                class="row items-center"
+                @click.stop.prevent="
+                  () => toggleFavorites(scope.opt.name, scope.opt.favorite)
+                "
+              >
+                <q-icon v-if="scope.opt.favorite" name="favorite" />
+                <q-icon v-else name="favorite_border" />
+              </div>
+            </q-item-section>
+          </q-item>
+        </template>
+        <template v-slot:error>
+          {{ tagError }}
+        </template>
+      </q-select>
+    </q-card-section>
 
-  <div class="flex justify-content-between mt-4">
-    <Button
-      label="Reset"
-      icon="pi pi-times"
-      @click="onResetFilters"
-      class="p-button-text ml-2"
-    />
-    <Button
-      label="Apply"
-      icon="pi pi-check"
-      @click="onApplyFilters"
-      autofocus
-      class="mr-2"
-    />
-  </div>
+    <q-card-actions class="justify-end">
+      <q-btn label="Reset" icon="close" @click="onResetFilters" />
+      <q-btn label="Apply" icon="check" @click="onApplyFilters" />
+    </q-card-actions>
+  </q-card>
 </template>
 
 <style scoped></style>

@@ -1,11 +1,30 @@
-<template>
-  <main class="main p-3 mt-4 border-round-xl">
-    <RouterView />
-  </main>
-</template>
+<script setup lang="ts">
+import Header from "@/components/Header.vue";
+import TreeDrawer from "@/components/TreeDrawer.vue";
+import NavigationDrawer from "@/components/NavigationDrawer.vue";
+import { ref } from "vue";
 
-<style scoped>
-.main {
-  background-color: var(--surface-a);
+const treeDrawerOpen = ref(true);
+const navigationDrawerOpen = ref(false);
+
+function toggleNavigationDrawer() {
+  navigationDrawerOpen.value = !navigationDrawerOpen.value;
 }
-</style>
+function toggleTreeDrawer() {
+  treeDrawerOpen.value = !treeDrawerOpen.value;
+}
+</script>
+<template>
+  <q-layout view="hHh LpR fFf">
+    <Header
+      @toggle-navigation-drawer="toggleNavigationDrawer"
+      @toggle-tree-drawer="toggleTreeDrawer"
+    />
+
+    <NavigationDrawer :navigationDrawerOpen="navigationDrawerOpen" />
+    <TreeDrawer :treeDrawerOpen="treeDrawerOpen" />
+    <q-page-container>
+      <router-view />
+    </q-page-container>
+  </q-layout>
+</template>
