@@ -1,6 +1,7 @@
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Home-Stockpile_stockpile-fe&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Home-Stockpile_stockpile-fe) [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Home-Stockpile_stockpile-fe&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Home-Stockpile_stockpile-fe) [![Technical Debt](https://sonarcloud.io/api/project_badges/measure?project=Home-Stockpile_stockpile-fe&metric=sqale_index)](https://sonarcloud.io/summary/new_code?id=Home-Stockpile_stockpile-fe) [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=Home-Stockpile_stockpile-fe&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=Home-Stockpile_stockpile-fe)
 
 
+
 # .
 
 This template should help get you started developing with Vue 3 in Vite.
