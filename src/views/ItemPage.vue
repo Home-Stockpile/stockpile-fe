@@ -2,7 +2,7 @@
 import { onBeforeMount, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useTreeNodes } from "@/store/treeNodes";
-import type { IItem } from "@/types/treeNodes";
+import type { INode } from "@/types/treeNodes";
 import { DialogTypes } from "@/types/dialog";
 import AddNodeDialog from "@/components/AddNodeDialog.vue";
 import router from "@/router";
@@ -12,7 +12,7 @@ import useVuelidate from "@vuelidate/core";
 const route = useRoute();
 const treeStore = useTreeNodes();
 const tree = treeStore.getTree;
-const currentItem = ref<IItem>();
+const currentItem = ref<INode>();
 const dialogVisibility = ref(false);
 const defaultIcons = treeStore.getDefaultIcons;
 const newQuantity = ref(0);

@@ -1,6 +1,6 @@
-import { IItem } from "@/types/treeNodes";
+import { INode } from "@/types/treeNodes";
 
-export function sortByType(node: IItem): IItem[] {
+export function sortByType(node: INode): INode[] {
   const foldersArr = [];
   const itemsArr = [];
   node.items.forEach((item) => {

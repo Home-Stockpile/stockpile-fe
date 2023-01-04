@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { IItem } from "@/types/treeNodes";
-import { AddDialog } from "@/types/dialog";
-
 interface IEmits {
   (e: "toggle-navigation-drawer"): void;
   (e: "toggle-tree-drawer"): void;

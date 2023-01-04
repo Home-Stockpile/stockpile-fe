@@ -5,7 +5,7 @@ import { useTreeNodes } from "@/store/treeNodes";
 import AddNodeDialog from "@/components/AddNodeDialog.vue";
 import { AddDialog, DialogTypes } from "@/types/dialog";
 
-import type { IItem } from "@/types/treeNodes";
+import type { INode } from "@/types/treeNodes";
 import router from "@/router";
 import NodeBreadcrumbs from "@/components/NodeBreadcrumbs.vue";
 
@@ -15,7 +15,7 @@ const treeStore = useTreeNodes();
 const tree = treeStore.getTree;
 const defaultIcons = treeStore.getDefaultIcons;
 const dialogType = ref<AddDialog>(DialogTypes.section);
-const currentItem = ref<IItem>();
+const currentItem = ref<INode>();
 
 const nestingLevel = computed(
   () => String(route.params.key).split("_").length < 3

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import { IItem } from "@/types/treeNodes";
+import { INode } from "@/types/treeNodes";
 import { useTreeNodes } from "@/store/treeNodes";
 interface IProps {
   tagForSearch: string;
   isFilter: boolean;
 }
 interface IEmits {
-  (e: "change-filters", value?: IItem[], tag?: string): void;
+  (e: "change-filters", value?: INode[], tag?: string): void;
 }
 const props = defineProps<IProps>();
 const emit = defineEmits<IEmits>();
@@ -22,10 +22,10 @@ const selectedFavTag = ref("");
 const selectedTag = ref(null);
 
 function filterByTag(
-  element: IItem,
+  element: INode,
   tagForSearch: string,
-  searchResult: IItem[]
-): IItem[] {
+  searchResult: INode[]
+): INode[] {
   if (element.tags && element.tags.find((tag) => tag.name === tagForSearch)) {
     searchResult.push(element);
   }

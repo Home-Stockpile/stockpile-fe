@@ -3,13 +3,13 @@ import { useTreeNodes } from "@/store/treeNodes";
 import { onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { AddDialog, DialogTypes } from "@/types/dialog";
-import { IItem } from "@/types/treeNodes";
+import { IDraftNode, INode } from "@/types/treeNodes";
 import { ITag } from "@/types/tags";
 import useVuelidate from "@vuelidate/core";
 import { helpers, maxLength, maxValue, required } from "@vuelidate/validators";
 
 interface IProps {
-  currentItem?: IItem;
+  currentItem?: INode;
   dialogType?: AddDialog;
   isEdit?: boolean;
 }
@@ -25,7 +25,7 @@ const tree = treeStore.getTree;
 const route = useRoute();
 const newTagName = ref("");
 
-const addForm = ref<IItem>({
+const addForm = ref<IDraftNode>({
   label: "",
   description: "",
   quantity: 0,
@@ -84,7 +84,7 @@ const $v = useVuelidate(rules, { addForm, newTagName });
 
 function createNewTreeNode(): void {
   $v.value.addForm.$touch();
-  let newNode: IItem = {
+  let newNode: IDraftNode = {
     label: addForm.value.label,
     icon: addForm.value.icon,
     favorites: false,
@@ -111,12 +111,12 @@ function getRootItemPath(): string {
   return String(route.params.key);
 }
 
-function addTreeNode(newNode: IItem, routerPath: string) {
+function addTreeNode(newNode: IDraftNode, routerPath: string) {
   treeStore.addTreeNode(newNode, getRootItemPath().split("_"), routerPath);
   hideDialog();
 }
 
-function editItem(newNode: IItem): void {
+function editItem(newNode: IDraftNode): void {
   treeStore.editItem({
     ...newNode,
     key: props.currentItem.key,
@@ -125,7 +125,7 @@ function editItem(newNode: IItem): void {
   hideDialog();
 }
 
-function modifyItem(newNode) {
+function modifyItem(newNode: IDraftNode) {
   newNode = {
     ...newNode,
     quantity: addForm.value.quantity,
@@ -133,28 +133,32 @@ function modifyItem(newNode) {
     description: addForm.value.description,
   };
 
-  if (!$v.value.addForm.$errors.length) {
-    if (props.isEdit) {
-      newNode.items = props.currentItem.items;
-      editItem(newNode);
-    } else {
-      addTreeNode(newNode, "/item/");
-    }
+  if ($v.value.addForm.$errors.length) {
+    return;
+  }
+
+  if (props.isEdit) {
+    newNode.items = props.currentItem.items;
+    editItem(newNode);
+  } else {
+    addTreeNode(newNode, "/item/");
   }
 }
 
-function modifySection(newNode: IItem) {
+function modifySection(newNode: IDraftNode) {
   newNode = {
     ...newNode,
     items: [],
   };
 
-  if (!$v.value.addForm.$errors.length) {
-    if (props.isEdit) {
-      editItem(newNode);
-    } else {
-      addTreeNode(newNode, "/section/");
-    }
+  if ($v.value.addForm.$errors.length) {
+    return;
+  }
+
+  if (props.isEdit) {
+    editItem(newNode);
+  } else {
+    addTreeNode(newNode, "/section/");
   }
 }
 

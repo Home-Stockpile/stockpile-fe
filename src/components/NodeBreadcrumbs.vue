@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import { onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import { IItem } from "@/types/treeNodes";
+import { INode } from "@/types/treeNodes";
 import { useTreeNodes } from "@/store/treeNodes";
 
 const route = useRoute();
-const breadcrumbs = ref<IItem[]>([]);
+const breadcrumbs = ref<INode[]>([]);
 const treeStore = useTreeNodes();
 const tree = treeStore.getTree;
 
