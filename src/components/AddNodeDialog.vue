@@ -5,28 +5,25 @@ import { useRoute } from "vue-router";
 import { AddDialog, DialogTypes } from "@/types/dialog";
 import { IItem } from "@/types/treeNodes";
 import { ITag } from "@/types/tags";
-import { validateQuantity } from "@/functions/validateQuantity";
+import useVuelidate from "@vuelidate/core";
+import { helpers, maxLength, maxValue, required } from "@vuelidate/validators";
 
-interface IAddNodeDialog {
+interface IProps {
   currentItem?: IItem;
   dialogType?: AddDialog;
   isEdit?: boolean;
 }
-const props = defineProps<IAddNodeDialog>();
-const emit = defineEmits(["hide-dialog"]);
+interface IEmits {
+  (e: "hide-dialog"): void;
+}
+const props = defineProps<IProps>();
+const emit = defineEmits<IEmits>();
 
 const treeStore = useTreeNodes();
 const tree = treeStore.getTree;
 
 const route = useRoute();
 const newTagName = ref("");
-
-const formErrors = ref({
-  errorLabel: "",
-  errorTag: "",
-  errorQuantity: "",
-  errorDescription: "",
-});
 
 const addForm = ref<IItem>({
   label: "",
@@ -36,57 +33,75 @@ const addForm = ref<IItem>({
   tags: [],
 });
 
-function hideDialog(): void {
-  formErrors.value.errorLabel = "";
-  formErrors.value.errorTag = "";
-  formErrors.value.errorQuantity = "";
-  formErrors.value.errorDescription = "";
+const rules = {
+  addForm: {
+    label: {
+      required,
+      maxLength: maxLength(25),
+      duplicateLabel: helpers.withMessage(
+        "Field with that name is already exists",
+        duplicateLabel
+      ),
+    },
+    quantity: { maxValue: maxValue(100) },
+    description: {
+      maxLength: maxLength(255),
+    },
+  },
+  newTagName: {
+    required,
+    maxLength: maxLength(15),
+    duplicateTag: helpers.withMessage(
+      "Tag with that name already exists",
+      duplicateTag
+    ),
+  },
+};
 
-  newTagName.value = "";
-  addForm.value.label = "";
-  addForm.value.description = "";
-  addForm.value.icon = "";
-  addForm.value.quantity = 0;
-  addForm.value.tags = [];
+function duplicateLabel(value: string) {
+  const rootObj = treeStore.getItem(tree, getRootItemPath().split("_"));
+  if (
+    !props.currentItem &&
+    rootObj.items.find(
+      (item) => String(item.label).toLowerCase() === value.toLowerCase()
+    )
+  ) {
+    return false;
+  }
+  return true;
+}
+function duplicateTag(value: string) {
+  if (
+    addForm.value.tags.find(
+      (tag) => tag.name.toLowerCase() === value.toLowerCase()
+    )
+  ) {
+    return false;
+  }
+  return true;
+}
+const $v = useVuelidate(rules, { addForm, newTagName });
+
+function createNewTreeNode(): void {
+  $v.value.addForm.$touch();
+  let newNode: IItem = {
+    label: addForm.value.label,
+    icon: addForm.value.icon,
+    favorites: false,
+  };
+  if (isItem()) {
+    modifyItem(newNode);
+  } else {
+    modifySection(newNode);
+  }
+}
+
+function hideDialog(): void {
   emit("hide-dialog");
 }
 
 function isItem(): boolean {
   return props.dialogType === DialogTypes.item;
-}
-
-function validateName(name: string, length: number): string {
-  if (name.length > length) {
-    return `Field can't be longer than ${length} chars`;
-  }
-  if (!name.trim() && length < 200) {
-    return "Field can't be empty";
-  }
-  return "";
-}
-
-function validateLabel(label: string, path): string {
-  const rootObj = treeStore.getItem(tree, path.split("_"));
-  if (
-    !props.currentItem &&
-    rootObj.items.find(
-      (item) => String(item.label).toLowerCase() === label.toLowerCase()
-    )
-  ) {
-    return "Field with that name already exist";
-  }
-  return validateName(label, 25);
-}
-
-function validateTag(tag: string): string {
-  if (
-    addForm.value.tags.find(
-      (tag) => tag.name.toLowerCase() === newTagName.value.toLowerCase()
-    )
-  ) {
-    return "Tag with that name already exists";
-  }
-  return validateName(tag, 15);
 }
 
 function getRootItemPath(): string {
@@ -95,85 +110,60 @@ function getRootItemPath(): string {
   }
   return String(route.params.key);
 }
-function addTreeNode(newItem: IItem, routerPath: string) {
-  treeStore.addTreeNode(newItem, getRootItemPath().split("_"), routerPath);
+
+function addTreeNode(newNode: IItem, routerPath: string) {
+  treeStore.addTreeNode(newNode, getRootItemPath().split("_"), routerPath);
   hideDialog();
 }
 
-function editItem(newItem: IItem): void {
+function editItem(newNode: IItem): void {
   treeStore.editItem({
-    ...newItem,
+    ...newNode,
     key: props.currentItem.key,
     to: props.currentItem.to,
   });
   hideDialog();
 }
 
-function modifyItem(newItem) {
-  newItem = {
-    ...newItem,
+function modifyItem(newNode) {
+  newNode = {
+    ...newNode,
     quantity: addForm.value.quantity,
     tags: addForm.value.tags,
     description: addForm.value.description,
   };
 
-  formErrors.value.errorQuantity = validateQuantity(addForm.value.quantity);
-  formErrors.value.errorDescription = validateName(
-    addForm.value.description,
-    264
-  );
-  if (
-    !formErrors.value.errorLabel &&
-    !formErrors.value.errorQuantity &&
-    !formErrors.value.errorDescription
-  ) {
+  if (!$v.value.addForm.$errors.length) {
     if (props.isEdit) {
-      newItem.items = props.currentItem.items;
-      editItem(newItem);
+      newNode.items = props.currentItem.items;
+      editItem(newNode);
     } else {
-      addTreeNode(newItem, "/item/");
+      addTreeNode(newNode, "/item/");
     }
   }
 }
 
-function modifySection(newItem: IItem) {
-  newItem = {
-    ...newItem,
+function modifySection(newNode: IItem) {
+  newNode = {
+    ...newNode,
     items: [],
   };
 
-  if (!formErrors.value.errorLabel) {
+  if (!$v.value.addForm.$errors.length) {
     if (props.isEdit) {
-      editItem(newItem);
+      editItem(newNode);
     } else {
-      addTreeNode(newItem, "/section/");
+      addTreeNode(newNode, "/section/");
     }
-  }
-}
-
-function validateForm(): void {
-  formErrors.value.errorLabel = validateLabel(
-    String(addForm.value.label),
-    getRootItemPath()
-  );
-  let newItem: IItem = {
-    label: addForm.value.label,
-    icon: addForm.value.icon,
-    favorites: false,
-  };
-  if (isItem()) {
-    modifyItem(newItem);
-  } else {
-    modifySection(newItem);
   }
 }
 
 function addTag(): void {
-  formErrors.value.errorTag = validateTag(newTagName.value);
-
-  if (!formErrors.value.errorTag) {
+  $v.value.newTagName.$touch();
+  if (!$v.value.newTagName.$errors.length) {
     addForm.value.tags.push({ name: newTagName.value, favorite: false });
     newTagName.value = "";
+    $v.value.newTagName.$reset();
   }
 }
 
@@ -181,7 +171,6 @@ function removeTag(tagForRemove: ITag): void {
   addForm.value.tags = addForm.value.tags.filter(
     (tag) => tag.name !== tagForRemove.name
   );
-  formErrors.value.errorTag = "";
 }
 
 function addIcon(e): void {
@@ -209,12 +198,15 @@ onMounted(() => {
         <h6 v-if="isItem()">Enter name of new item :</h6>
         <h6 v-else>Enter name of new place:</h6>
         <q-input
-          v-model.trim="addForm.label"
-          :error="!!formErrors.errorLabel"
+          v-model="addForm.label"
+          @blur="$v.addForm.label.$touch"
+          :error="$v.addForm.label.$error"
           placeholder="Name"
           type="text"
         >
-          <template v-slot:error> {{ formErrors.errorLabel }} </template>
+          <template v-slot:error>
+            {{ $v.addForm.label.$errors[0].$message }}
+          </template>
         </q-input>
       </q-card-section>
       <div v-show="isItem()">
@@ -222,11 +214,12 @@ onMounted(() => {
           <h6>Quantity:</h6>
           <q-input
             v-model="addForm.quantity"
-            :error="!!formErrors.errorQuantity"
+            :error="$v.addForm.quantity.$error"
+            @blur="$v.addForm.quantity.$touch"
             type="number"
           >
             <template v-slot:error>
-              {{ formErrors.errorQuantity }}
+              {{ $v.addForm.quantity.$errors[0].$message }}
             </template>
           </q-input>
         </q-card-section>
@@ -236,7 +229,7 @@ onMounted(() => {
           <div class="column">
             <q-input
               v-model="newTagName"
-              :error="!!formErrors.errorTag"
+              :error="!!$v.newTagName.$error"
               bottom-slots
               placeholder="Add your tags"
               maxlength="12"
@@ -245,7 +238,7 @@ onMounted(() => {
                 <q-btn @click="addTag" round dense flat icon="add" size="lg" />
               </template>
               <template v-slot:error>
-                {{ formErrors.errorTag }}
+                {{ $v.newTagName.$errors[0].$message }}
               </template>
             </q-input>
           </div>
@@ -266,7 +259,8 @@ onMounted(() => {
 
           <q-input
             v-model="addForm.description"
-            :error="!!formErrors.errorDescription"
+            :error="!!$v.addForm.description.$error"
+            @blur="$v.addForm.description.$touch"
             bottom-slots
             placeholder="Add your description"
             filled
@@ -274,7 +268,7 @@ onMounted(() => {
             type="textarea"
           >
             <template v-slot:error>
-              {{ formErrors.errorDescription }}
+              {{ $v.addForm.description.$errors[0].$message }}
             </template>
           </q-input>
         </q-card-section>
@@ -290,7 +284,7 @@ onMounted(() => {
       </q-card-section>
       <q-card-actions class="justify-end q-mt-lg">
         <q-btn label="Cancel" icon="close" @click="hideDialog" />
-        <q-btn label="Save" icon="check" @click="validateForm" />
+        <q-btn label="Save" icon="check" @click="createNewTreeNode" />
       </q-card-actions>
     </q-card>
   </q-dialog>

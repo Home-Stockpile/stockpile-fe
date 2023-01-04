@@ -1,5 +1,12 @@
 <script setup lang="ts">
-const emit = defineEmits(["toggle-navigation-drawer", "toggle-tree-drawer"]);
+import { IItem } from "@/types/treeNodes";
+import { AddDialog } from "@/types/dialog";
+
+interface IEmits {
+  (e: "toggle-navigation-drawer"): void;
+  (e: "toggle-tree-drawer"): void;
+}
+const emit = defineEmits<IEmits>();
 
 function toggleNavigationDrawer() {
   emit("toggle-navigation-drawer");

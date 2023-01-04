@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onBeforeMount, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useTreeNodes } from "@/store/treeNodes";
 import AddNodeDialog from "@/components/AddNodeDialog.vue";
@@ -15,7 +15,7 @@ const treeStore = useTreeNodes();
 const tree = treeStore.getTree;
 const defaultIcons = treeStore.getDefaultIcons;
 const dialogType = ref<AddDialog>(DialogTypes.section);
-const currentItem = ref<IItem>({});
+const currentItem = ref<IItem>();
 
 const nestingLevel = computed(
   () => String(route.params.key).split("_").length < 3
@@ -48,7 +48,7 @@ function removeItem(): void {
   treeStore.removeItem(rootItemPath, String(route.params.key));
 }
 
-onMounted(() => {
+onBeforeMount(() => {
   currentItem.value = treeStore.getItem(
     tree,
     String(route.params.key).split("_")

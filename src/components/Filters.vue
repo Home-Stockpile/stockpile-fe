@@ -1,10 +1,16 @@
 <script setup lang="ts">
-import { onMounted, onUpdated, ref, watch } from "vue";
+import { onMounted, ref, watch } from "vue";
 import { IItem } from "@/types/treeNodes";
 import { useTreeNodes } from "@/store/treeNodes";
-
-const props = defineProps({ tagForSearch: String, isFilter: Boolean });
-const emit = defineEmits(["change-filters"]);
+interface IProps {
+  tagForSearch: string;
+  isFilter: boolean;
+}
+interface IEmits {
+  (e: "change-filters", value?: IItem[], tag?: string): void;
+}
+const props = defineProps<IProps>();
+const emit = defineEmits<IEmits>();
 
 const treeStore = useTreeNodes();
 const tree = treeStore.getTree;

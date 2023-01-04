@@ -1,7 +1,7 @@
 import { ITag } from "@/types/tags";
 
 export interface IItem {
-  label?: string;
+  label: string;
   key?: string;
   to?: string;
   icon?: string;

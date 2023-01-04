@@ -6,8 +6,11 @@ import { IItem } from "@/types/treeNodes";
 import Filters from "@/components/Filters.vue";
 import { DialogTypes } from "@/types/dialog";
 import { storeToRefs } from "pinia";
+interface IProps {
+  treeDrawerOpen: boolean;
+}
 
-const props = defineProps({ treeDrawerOpen: Boolean });
+const props = defineProps<IProps>();
 const treeStore = storeToRefs(useTreeNodes());
 const tree = treeStore.getTree;
 const favorites = treeStore.getFavorites;

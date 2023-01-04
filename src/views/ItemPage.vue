@@ -6,29 +6,37 @@ import type { IItem } from "@/types/treeNodes";
 import { DialogTypes } from "@/types/dialog";
 import AddNodeDialog from "@/components/AddNodeDialog.vue";
 import router from "@/router";
-import { validateQuantity } from "@/functions/validateQuantity";
 import NodeBreadcrumbs from "@/components/NodeBreadcrumbs.vue";
+import { maxValue } from "@vuelidate/validators";
+import useVuelidate from "@vuelidate/core";
 const route = useRoute();
 const treeStore = useTreeNodes();
 const tree = treeStore.getTree;
-const currentItem = ref<IItem>({});
+const currentItem = ref<IItem>();
 const dialogVisibility = ref(false);
 const defaultIcons = treeStore.getDefaultIcons;
-const errorQuantity = ref("");
+const newQuantity = ref(0);
+const rules = {
+  newQuantity: { maxValue: maxValue(100) },
+};
+
+const $v = useVuelidate(rules, { newQuantity });
 
 function showDialog(): void {
   dialogVisibility.value = true;
 }
+
 function hideDialog(): void {
   dialogVisibility.value = false;
 }
-function changeQuantity(e): void {
-  if (validateQuantity(e.target.value)) {
-    errorQuantity.value = validateQuantity(e.target.value);
-  } else {
-    treeStore.editItem({ ...currentItem.value, quantity: Number(e.value) });
+
+function changeQuantity(): void {
+  $v.value.newQuantity.$touch();
+  if (!$v.value.newQuantity.$errors.length) {
+    treeStore.editItem({ ...currentItem.value, quantity: newQuantity.value });
   }
 }
+
 function removeItem(): void {
   router.go(-1);
   const rootItemPath = currentItem.value.key
@@ -41,6 +49,7 @@ onBeforeMount(() => {
     tree,
     String(route.params.key).split("_")
   );
+  newQuantity.value = currentItem.value.quantity;
 });
 watch(
   () => route.params.key,
@@ -49,6 +58,7 @@ watch(
       tree,
       String(route.params.key).split("_")
     );
+    newQuantity.value = currentItem.value.quantity;
   }
 );
 </script>
@@ -89,13 +99,13 @@ watch(
 
       <div>
         <q-input
-          v-model="currentItem.quantity"
-          :error="!!errorQuantity"
-          @input="changeQuantity"
+          v-model="newQuantity"
+          :error="$v.newQuantity.$error"
+          @update:model-value="changeQuantity"
           type="number"
         >
           <template v-slot:error>
-            {{ errorQuantity }}
+            {{ $v.newQuantity.$errors[0].$message }}
           </template>
         </q-input>
       </div>
