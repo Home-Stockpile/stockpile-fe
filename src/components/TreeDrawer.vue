@@ -2,12 +2,15 @@
 import AddNodeDialog from "@/components/AddNodeDialog.vue";
 import { useTreeNodes } from "@/store/treeNodes";
 import { computed, ref } from "vue";
-import { IItem } from "@/types/treeNodes";
+import { INode } from "@/types/treeNodes";
 import Filters from "@/components/Filters.vue";
 import { DialogTypes } from "@/types/dialog";
 import { storeToRefs } from "pinia";
+interface IProps {
+  treeDrawerOpen: boolean;
+}
 
-const props = defineProps({ treeDrawerOpen: Boolean });
+const props = defineProps<IProps>();
 const treeStore = storeToRefs(useTreeNodes());
 const tree = treeStore.getTree;
 const favorites = treeStore.getFavorites;
@@ -17,7 +20,7 @@ const addNodeVisibility = ref(false);
 const searchQuery = ref("");
 const options = ref({ all: "All", favorites: "Favorites" });
 const isFavoriteCategory = ref(false);
-const searchResults = ref<IItem[]>([]);
+const searchResults = ref<INode[]>([]);
 const tagForSearch = ref("");
 const isFilter = ref(false);
 
@@ -59,7 +62,7 @@ function showFilter(): void {
 function hideFilter(): void {
   isFilter.value = false;
 }
-function changeFilters(value: IItem[], tag): void {
+function changeFilters(value: INode[], tag): void {
   if (value) {
     tagForSearch.value = tag;
     searchQuery.value = "";

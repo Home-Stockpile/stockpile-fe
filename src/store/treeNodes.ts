@@ -1,9 +1,10 @@
 import { defineStore } from "pinia";
-import type { IItem } from "@/types/treeNodes";
+import type { INode } from "@/types/treeNodes";
 import { nextNodeKey } from "@/functions/nextNodeKey";
 import { sortByType } from "@/functions/sortByType";
 import { ITag } from "@/types/tags";
 import { computed } from "vue";
+import { IDraftNode } from "@/types/treeNodes";
 
 export const useTreeNodes = defineStore("treeNodes", {
   state: () => {
@@ -121,13 +122,13 @@ export const useTreeNodes = defineStore("treeNodes", {
             ],
           },
         ],
-      } as IItem,
+      } as INode,
     };
   },
   actions: {
-    addTreeNode(item: IItem, rootItemPath: string[], routerPath) {
+    addTreeNode(item: IDraftNode, rootItemPath: string[], routerPath) {
       const path = rootItemPath.slice(0).join("_");
-      const rootItem = this.getItem(this.getTree, rootItemPath);
+      const rootItem: INode = this.getItem(this.getTree, rootItemPath);
       let lastKey = "";
       if (!rootItem.items.length) {
         lastKey = path + "_0";
@@ -147,7 +148,7 @@ export const useTreeNodes = defineStore("treeNodes", {
       item.favorites = !item.favorites;
     },
 
-    toggleTagFavorites(element: IItem, tag: ITag): null {
+    toggleTagFavorites(element: INode, tag: ITag): null {
       if (!element.items) {
         element.tags.forEach((eTag, index) => {
           if (eTag.name === tag.name) {
@@ -164,20 +165,20 @@ export const useTreeNodes = defineStore("treeNodes", {
       return null;
     },
 
-    editItem(newItem: IItem) {
+    editItem(newItem: INode) {
       const currentItem = this.getItem(this.getTree, newItem.key.split("_"));
       Object.assign(currentItem, newItem);
     },
     removeItem(rootItemPath: string[], itemPath: string) {
-      const rootItem: IItem = this.getItem(this.getTree, rootItemPath);
+      const rootItem: INode = this.getItem(this.getTree, rootItemPath);
       rootItem.items = rootItem.items.filter((i) => i.key !== itemPath);
     },
   },
   getters: {
-    getTree: (state): IItem => state.tree,
+    getTree: (state): INode => state.tree,
     getDefaultIcons: (state) => state.defaultTreeIcons,
     getItem: () =>
-      function getItem(item: IItem, path: string[]): IItem | null {
+      function getItem(item: INode, path: string[]): INode | null {
         if (path[0] === "0") {
           return item;
         }
@@ -198,7 +199,7 @@ export const useTreeNodes = defineStore("treeNodes", {
         return getItem(findItem, path);
       },
     getFavorites: (state) => {
-      function getFavorites(element: IItem, searchResult: IItem[]): IItem[] {
+      function getFavorites(element: INode, searchResult: INode[]): INode[] {
         if (element.favorites) {
           searchResult.push(element);
         }
@@ -216,10 +217,10 @@ export const useTreeNodes = defineStore("treeNodes", {
     },
     getBreadcrumbs: () =>
       function getBreadcrumbs(
-        item: IItem[],
+        item: INode[],
         path: string[],
-        breadcrumbs: IItem[]
-      ): IItem[] | null {
+        breadcrumbs: INode[]
+      ): INode[] | null {
         if (!item) {
           return breadcrumbs;
         }
@@ -238,7 +239,7 @@ export const useTreeNodes = defineStore("treeNodes", {
         return getBreadcrumbs(findItem.items, path, breadcrumbs);
       },
     getTags: (state) => {
-      function getTags(element: IItem, searchResult: ITag[]): ITag[] {
+      function getTags(element: INode, searchResult: ITag[]): ITag[] {
         if (!element.items) {
           element.tags.forEach((eTag) => {
             if (!searchResult.find((sTag) => sTag.name === eTag.name)) {

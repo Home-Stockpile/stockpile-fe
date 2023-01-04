@@ -1,5 +1,9 @@
 <script setup lang="ts">
-const props = defineProps({ navigationDrawerOpen: Boolean });
+interface IProps {
+  navigationDrawerOpen: boolean;
+}
+
+const props = defineProps<IProps>();
 </script>
 
 <template>

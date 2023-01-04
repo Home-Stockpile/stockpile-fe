@@ -1,13 +1,15 @@
 import { ITag } from "@/types/tags";
 
-export interface IItem {
-  label?: string;
-  key?: string;
-  to?: string;
+export interface INode {
+  label: string;
+  key: string;
+  to: string;
   icon?: string;
-  items?: IItem[];
+  items?: INode[];
   description?: string;
   favorites?: boolean;
   tags?: ITag[];
   quantity?: number;
 }
+
+export interface IDraftNode extends Omit<INode, "key" | "to"> {}
