@@ -75,7 +75,7 @@ watch(
   <div class="q-pa-sm bg-white">
     <NodeBreadcrumbs />
     <div>
-      Tags:
+      {{ $t("commonMessages.tags") }}
       <q-chip
         v-for="tag in currentItem.tags"
         :key="tag.name"
@@ -112,13 +112,22 @@ watch(
     </div>
 
     <div class="q-mt-sm">
-      <h6>Description:</h6>
+      <h6>{{ $t("commonMessages.description") }}</h6>
       <div class="q-mt-sm">{{ currentItem.description }}</div>
     </div>
 
     <div class="row justify-end">
-      <q-btn @click="showDialog" label="Edit" color="primary" class="q-mr-sm" />
-      <q-btn @click="removeItem" label="Delete place" color="red" />
+      <q-btn
+        @click="showDialog"
+        :label="$t('nodePageButtons.edit')"
+        color="primary"
+        class="q-mr-sm"
+      />
+      <q-btn
+        @click="removeItem"
+        :label="$t('nodePageButtons.delete')"
+        color="red"
+      />
     </div>
   </div>
 </template>

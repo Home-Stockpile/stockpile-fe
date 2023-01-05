@@ -199,8 +199,8 @@ onMounted(() => {
   <q-dialog @hide="hideDialog" :model-value="true">
     <q-card class="q-pa-md">
       <q-card-section>
-        <h6 v-if="isItem()">Enter name of new item :</h6>
-        <h6 v-else>Enter name of new place:</h6>
+        <h6 v-if="isItem()">{{ $t("addDialog.itemLabel") }}</h6>
+        <h6 v-else>{{ $t("addDialog.itemLabel") }}</h6>
         <q-input
           v-model="addForm.label"
           @blur="$v.addForm.label.$touch"
@@ -215,7 +215,7 @@ onMounted(() => {
       </q-card-section>
       <div v-show="isItem()">
         <q-card-section>
-          <h6>Quantity:</h6>
+          <h6>{{ $t("commonMessages.quantity") }}</h6>
           <q-input
             v-model="addForm.quantity"
             :error="$v.addForm.quantity.$error"
@@ -229,7 +229,7 @@ onMounted(() => {
         </q-card-section>
 
         <q-card-section>
-          <h6>Tags:</h6>
+          <h6>{{ $t("commonMessages.tags") }}</h6>
           <div class="column">
             <q-input
               v-model="newTagName"
@@ -259,7 +259,7 @@ onMounted(() => {
         </q-card-section>
 
         <q-card-section>
-          <h6>Description:</h6>
+          <h6>{{ $t("commonMessages.description") }}</h6>
 
           <q-input
             v-model="addForm.description"
@@ -278,7 +278,7 @@ onMounted(() => {
         </q-card-section>
       </div>
       <q-card-section>
-        <h6>Download your icon:</h6>
+        <h6>{{ $t("addDialog.icon") }}</h6>
         <q-uploader
           @added="addIcon"
           @removed="removeIcon"
@@ -287,8 +287,16 @@ onMounted(() => {
         />
       </q-card-section>
       <q-card-actions class="justify-end q-mt-lg">
-        <q-btn label="Cancel" icon="close" @click="hideDialog" />
-        <q-btn label="Save" icon="check" @click="createNewTreeNode" />
+        <q-btn
+          :label="$t('addDialog.cancelButton')"
+          icon="close"
+          @click="hideDialog"
+        />
+        <q-btn
+          :label="$t('addDialog.saveButton')"
+          icon="check"
+          @click="createNewTreeNode"
+        />
       </q-card-actions>
     </q-card>
   </q-dialog>

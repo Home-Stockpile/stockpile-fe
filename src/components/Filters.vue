@@ -100,7 +100,7 @@ onMounted(() => {
   >
     <q-card class="q-pa-md full-height">
       <q-card-section>
-        <h6>Filter by tag:</h6>
+        <h6>{{ $t("filters.tags") }}</h6>
         <q-select
           filled
           v-model="selectedTag"
@@ -142,7 +142,7 @@ onMounted(() => {
       </q-card-section>
 
       <q-card-section>
-        <h6>Filter by favorite tag:</h6>
+        <h6>{{ $t("filters.favoriteTags") }}</h6>
         <q-select
           filled
           v-model="selectedFavTag"
@@ -184,8 +184,16 @@ onMounted(() => {
       </q-card-section>
 
       <q-card-actions class="justify-end">
-        <q-btn label="Reset" icon="close" @click="onResetFilters" />
-        <q-btn label="Apply" icon="check" @click="onApplyFilters" />
+        <q-btn
+          :label="$t('filters.resetButton')"
+          icon="close"
+          @click="onResetFilters"
+        />
+        <q-btn
+          :label="$t('filters.applyButton')"
+          icon="check"
+          @click="onApplyFilters"
+        />
       </q-card-actions>
     </q-card>
   </q-drawer>

@@ -46,8 +46,7 @@ function showDialog(): void {
 function switchFavorites(e): void {
   isFilter.value = false;
   searchResults.value = [];
-  isFavoriteCategory.value = e.target.innerHTML === options.value.favorites;
-
+  isFavoriteCategory.value = e.target.value === options.value.favorites;
   searchQuery.value = "";
   tagForSearch.value = "";
 }
@@ -91,7 +90,7 @@ function changeFilters(value: INode[], tag): void {
       ref="inputRef"
       filled
       v-model.trim="searchQuery"
-      placeholder="Keyword"
+      :placeholder="$t('treeDrawer.search')"
       clearable
     >
       <template v-slot:append>
@@ -101,21 +100,23 @@ function changeFilters(value: INode[], tag): void {
 
     <div class="row items-center justify-between q-pa-sm">
       <div class="row text-subtitle1">
-        <div
+        <data
           @click="switchFavorites"
           :class="!isFavoriteCategory && 'underline'"
+          :value="options.all"
           class="q-pr-xs cursor-pointer"
         >
-          {{ options.all }}
-        </div>
+          {{ $t("treeDrawer.all") }}
+        </data>
         <div>|</div>
-        <div
+        <data
           @click="switchFavorites"
           :class="isFavoriteCategory && 'underline'"
+          :value="options.favorites"
           class="q-pl-xs cursor-pointer"
         >
-          {{ options.favorites }}
-        </div>
+          {{ $t("treeDrawer.favorites") }}
+        </data>
       </div>
       <div class="row">
         <q-btn
@@ -133,7 +134,9 @@ function changeFilters(value: INode[], tag): void {
         />
       </div>
     </div>
-    <div v-show="tagForSearch">Filtered by tag: {{ tagForSearch }}</div>
+    <div v-show="tagForSearch">
+      {{ $t("treeDrawer.filter") }} {{ tagForSearch }}
+    </div>
     <q-scroll-area class="q-pa-sm">
       <q-tree
         :nodes="currentTree"
