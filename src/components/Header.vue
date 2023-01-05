@@ -18,7 +18,7 @@ const langs = [
   },
   {
     label: "US English",
-    value: "en-us",
+    value: "en",
   },
 ];
 </script>
