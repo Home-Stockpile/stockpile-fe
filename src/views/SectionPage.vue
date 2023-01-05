@@ -104,16 +104,12 @@ watch(
         />
         <q-btn
           @click="showDialog(DialogTypes.section, true)"
-          :label="$t('nodePageButtons.edit')"
+          :label="$t('general.edit')"
           color="primary"
           class="q-mr-sm"
         />
 
-        <q-btn
-          @click="removeItem"
-          :label="$t('nodePageButtons.delete')"
-          color="red"
-        />
+        <q-btn @click="removeItem" :label="$t('general.delete')" color="red" />
       </div>
     </div>
   </div>

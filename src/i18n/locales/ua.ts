@@ -7,11 +7,10 @@ export default {
     cancelButton: "Відмінити",
     resetButton: "Відмінити",
     applyButton: "Застосувати",
-  },
-  nodePageButtons: {
     delete: "Видалити",
     edit: "Редагувати",
   },
+
   addDialog: {
     itemLabel: "Введіть назву предмета:  ",
     placeLabel: "Введіть назву місця:  ",

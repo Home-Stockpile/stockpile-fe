@@ -7,11 +7,10 @@ export default {
     cancelButton: "Cancel",
     resetButton: "Reset",
     applyButton: "Apply",
-  },
-  nodePageButtons: {
     delete: "Delete",
     edit: "Edit",
   },
+
   addDialog: {
     itemLabel: "Enter name of item: ",
     placeLabel: "Enter name of place: ",
