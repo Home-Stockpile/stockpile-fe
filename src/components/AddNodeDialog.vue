@@ -215,7 +215,7 @@ onMounted(() => {
       </q-card-section>
       <div v-show="isItem()">
         <q-card-section>
-          <h6>{{ $t("commonMessages.quantity") }}</h6>
+          <h6>{{ $t("general.quantity") }}</h6>
           <q-input
             v-model="addForm.quantity"
             :error="$v.addForm.quantity.$error"
@@ -229,7 +229,7 @@ onMounted(() => {
         </q-card-section>
 
         <q-card-section>
-          <h6>{{ $t("commonMessages.tags") }}</h6>
+          <h6>{{ $t("general.tags") }}</h6>
           <div class="column">
             <q-input
               v-model="newTagName"
@@ -259,7 +259,7 @@ onMounted(() => {
         </q-card-section>
 
         <q-card-section>
-          <h6>{{ $t("commonMessages.description") }}</h6>
+          <h6>{{ $t("general.description") }}</h6>
 
           <q-input
             v-model="addForm.description"
@@ -288,12 +288,12 @@ onMounted(() => {
       </q-card-section>
       <q-card-actions class="justify-end q-mt-lg">
         <q-btn
-          :label="$t('addDialog.cancelButton')"
+          :label="$t('general.cancelButton')"
           icon="close"
           @click="hideDialog"
         />
         <q-btn
-          :label="$t('addDialog.saveButton')"
+          :label="$t('general.saveButton')"
           icon="check"
           @click="createNewTreeNode"
         />

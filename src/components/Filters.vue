@@ -185,12 +185,12 @@ onMounted(() => {
 
       <q-card-actions class="justify-end">
         <q-btn
-          :label="$t('filters.resetButton')"
+          :label="$t('general.resetButton')"
           icon="close"
           @click="onResetFilters"
         />
         <q-btn
-          :label="$t('filters.applyButton')"
+          :label="$t('general.applyButton')"
           icon="check"
           @click="onApplyFilters"
         />

@@ -1,8 +1,12 @@
 export default {
-  commonMessages: {
+  general: {
     quantity: "Quantity",
     tags: "Tags:",
     description: "Description:",
+    saveButton: "Save",
+    cancelButton: "Cancel",
+    resetButton: "Reset",
+    applyButton: "Apply",
   },
   nodePageButtons: {
     delete: "Delete",
@@ -12,8 +16,6 @@ export default {
     itemLabel: "Enter name of item: ",
     placeLabel: "Enter name of place: ",
     icon: "Download your icon:",
-    saveButton: "Save",
-    cancelButton: "Cancel",
   },
 
   sectionPage: {
@@ -29,7 +31,5 @@ export default {
   filters: {
     tags: "Filter by tag:",
     favoriteTags: "Filter by favorite tag:",
-    resetButton: "Reset",
-    applyButton: "Apply",
   },
 };

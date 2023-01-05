@@ -75,7 +75,7 @@ watch(
   <div class="q-pa-sm bg-white">
     <NodeBreadcrumbs />
     <div>
-      {{ $t("commonMessages.tags") }}
+      {{ $t("general.tags") }}
       <q-chip
         v-for="tag in currentItem.tags"
         :key="tag.name"
@@ -112,7 +112,7 @@ watch(
     </div>
 
     <div class="q-mt-sm">
-      <h6>{{ $t("commonMessages.description") }}</h6>
+      <h6>{{ $t("general.description") }}</h6>
       <div class="q-mt-sm">{{ currentItem.description }}</div>
     </div>
 

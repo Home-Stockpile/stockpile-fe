@@ -1,8 +1,12 @@
 export default {
-  commonMessages: {
+  general: {
     quantity: "Кількість:",
     tags: "Теги:",
     description: "Опис:",
+    saveButton: "Зберегти",
+    cancelButton: "Відмінити",
+    resetButton: "Відмінити",
+    applyButton: "Застосувати",
   },
   nodePageButtons: {
     delete: "Видалити",
@@ -12,8 +16,6 @@ export default {
     itemLabel: "Введіть назву предмета:  ",
     placeLabel: "Введіть назву місця:  ",
     icon: "Завантажте вашу іконку:",
-    saveButton: "Зберегти",
-    cancelButton: "Відмінити",
   },
 
   sectionPage: {
@@ -29,7 +31,5 @@ export default {
   filters: {
     tags: "Фільтрувати за тегом:",
     favoriteTags: "Фільтрувати за улюбленим тегом:",
-    resetButton: "Відмінити",
-    applyButton: "Застосувати",
   },
 };
