@@ -1,8 +1,8 @@
-import enUS from "./en-US";
+import enUS from "./en";
 import ua from "./ua";
 
 const messages = {
-  "en-us": enUS,
+  en: enUS,
   ua,
 };
 
