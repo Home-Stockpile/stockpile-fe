@@ -193,7 +193,7 @@ export const useTreeNodes = defineStore("treeNodes", {
         }
         const keyFirstPart = path.slice(0, 2).join("_");
         const itemKey = path.shift();
-        const findItem = item.items.find((i) => i.key === itemKey);
+        const findItem = item.items.find((i) => i.key === itemKey) || null;
         if (!path.length) {
           return findItem;
         }
