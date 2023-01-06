@@ -135,6 +135,9 @@ export const useTreeNodes = defineStore("treeNodes", {
       } else {
         lastKey = rootItem.items[rootItem.items.length - 1].key;
       }
+      if (rootItem.key === "0" && !rootItem.items.length) {
+        lastKey = "0";
+      }
       rootItem.items.push({
         ...item,
         key: nextNodeKey(lastKey),
