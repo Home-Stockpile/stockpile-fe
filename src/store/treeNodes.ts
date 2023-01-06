@@ -221,9 +221,6 @@ export const useTreeNodes = defineStore("treeNodes", {
         path: string[],
         breadcrumbs: INode[]
       ): INode[] | null {
-        if (!item) {
-          return breadcrumbs;
-        }
         const keyFirstPart = path.slice(0, 2).join("_");
         const itemKey = path.shift();
         const findItem = item.find((i) => i.key === itemKey);
@@ -233,9 +230,7 @@ export const useTreeNodes = defineStore("treeNodes", {
         path.splice(0, 1, keyFirstPart);
 
         breadcrumbs = [...breadcrumbs, findItem];
-        if (!findItem) {
-          return breadcrumbs;
-        }
+
         return getBreadcrumbs(findItem.items, path, breadcrumbs);
       },
     getTags: (state) => {
