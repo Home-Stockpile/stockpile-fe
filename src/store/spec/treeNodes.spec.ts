@@ -110,7 +110,123 @@ const expectedTree = {
   ],
 };
 const expectedItem = expectedTree.items[0].items[0].items[0];
-
+const expectedFavorites = [
+  {
+    key: "1",
+    label: "Kitchen",
+    favorites: true,
+    icon: "https://media.istockphoto.com/photos/blue-sky-and-white-clouds-background-picture-id825778252?b=1&k=20&m=825778252&s=612x612&w=0&h=C2j1HeXd5swrFsvrBqN9GIUmewXPSERRg9quVii3prM=",
+    to: "/section/1",
+    items: [
+      {
+        key: "1_1",
+        label: "Store",
+        to: "/section/1_1",
+        items: [
+          {
+            key: "1_1_1",
+            label: "Fork",
+            description: "this is a fork",
+            tags: [{ name: "Tag1", favorite: false }],
+            quantity: 24,
+            to: `/item/1_1_1`,
+          },
+          {
+            key: "1_1_2",
+            label: "Spoon",
+            description: "this is a spoon",
+            tags: [{ name: "Tag2", favorite: false }],
+            quantity: 14,
+            to: "/item/1_1_2",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    key: "2_1_1",
+    label: "Hummer",
+    favorites: true,
+    description: "this is a Hummer",
+    tags: [{ name: "Tag3", favorite: false }],
+    quantity: 1,
+    to: "/item/2_1_1",
+  },
+  {
+    key: "2_2_1",
+    label: "Nuts",
+    favorites: true,
+    description: "this is Nuts",
+    tags: [{ name: "Tag2", favorite: false }],
+    quantity: 54,
+    to: "/item/2_2_1",
+  },
+];
+const expectedBreadcrumbs = [
+  {
+    key: "1",
+    label: "Kitchen",
+    favorites: true,
+    icon: "https://media.istockphoto.com/photos/blue-sky-and-white-clouds-background-picture-id825778252?b=1&k=20&m=825778252&s=612x612&w=0&h=C2j1HeXd5swrFsvrBqN9GIUmewXPSERRg9quVii3prM=",
+    to: "/section/1",
+    items: [
+      {
+        key: "1_1",
+        label: "Store",
+        to: "/section/1_1",
+        items: [
+          {
+            key: "1_1_1",
+            label: "Fork",
+            description: "this is a fork",
+            tags: [{ name: "Tag1", favorite: false }],
+            quantity: 24,
+            to: `/item/1_1_1`,
+          },
+          {
+            key: "1_1_2",
+            label: "Spoon",
+            description: "this is a spoon",
+            tags: [{ name: "Tag2", favorite: false }],
+            quantity: 14,
+            to: "/item/1_1_2",
+          },
+        ],
+      },
+    ],
+  },
+  {
+    key: "1_1",
+    label: "Store",
+    to: "/section/1_1",
+    items: [
+      {
+        key: "1_1_1",
+        label: "Fork",
+        description: "this is a fork",
+        tags: [{ name: "Tag1", favorite: false }],
+        quantity: 24,
+        to: `/item/1_1_1`,
+      },
+      {
+        key: "1_1_2",
+        label: "Spoon",
+        description: "this is a spoon",
+        tags: [{ name: "Tag2", favorite: false }],
+        quantity: 14,
+        to: "/item/1_1_2",
+      },
+    ],
+  },
+  {
+    key: "1_1_1",
+    label: "Fork",
+    description: "this is a fork",
+    tags: [{ name: "Tag1", favorite: false }],
+    quantity: 24,
+    to: `/item/1_1_1`,
+  },
+];
 describe("treeNodes", () => {
   beforeEach(() => {
     setActivePinia(createPinia());
@@ -145,7 +261,22 @@ describe("treeNodes", () => {
     });
     test("getItem no tree", () => {
       const treeNode = useTreeNodes();
-      expect(treeNode.getItem(null, ["1"])).toMatchObject(null);
+      expect(treeNode.getItem(null, ["1"])).toBe(null);
+    });
+  });
+
+  describe("getFavorites", () => {
+    test("getItem 1_1_1", () => {
+      const treeNode = useTreeNodes();
+      expect(treeNode.getFavorites).toMatchObject(expectedFavorites);
+    });
+  });
+  describe("getBreadcrumbs", () => {
+    test("getBreadcrumbs 1_1_1", () => {
+      const treeNode = useTreeNodes();
+      expect(
+        treeNode.getBreadcrumbs(treeNode.getTree.items, ["1", "1", "1"], [])
+      ).toMatchObject(expectedBreadcrumbs);
     });
   });
 });
