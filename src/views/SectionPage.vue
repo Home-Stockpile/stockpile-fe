@@ -90,26 +90,26 @@ watch(
 
       <div>
         <q-btn
-          label="Add item"
           @click="() => showDialog(DialogTypes.item, false)"
+          :label="$t('sectionPage.addItem')"
           class="q-mr-sm"
           color="primary"
         />
         <q-btn
           v-show="nestingLevel"
           @click="() => showDialog(DialogTypes.section, false)"
-          label="Add place"
+          :label="$t('sectionPage.addPlace')"
           color="primary"
           class="q-mr-sm"
         />
         <q-btn
           @click="showDialog(DialogTypes.section, true)"
-          label="Edit"
+          :label="$t('general.edit')"
           color="primary"
           class="q-mr-sm"
         />
 
-        <q-btn @click="removeItem" label="Delete place" y color="red" />
+        <q-btn @click="removeItem" :label="$t('general.delete')" color="red" />
       </div>
     </div>
   </div>

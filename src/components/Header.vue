@@ -11,15 +11,45 @@ function toggleNavigationDrawer() {
 function toggleTreeDrawer() {
   emit("toggle-tree-drawer");
 }
+const langs = [
+  {
+    label: "Ukrainian",
+    value: "ua",
+  },
+  {
+    label: "English",
+    value: "en",
+  },
+];
 </script>
+
 <template>
   <q-header bordered class="bg-primary text-white">
     <q-toolbar>
       <q-btn dense flat round icon="menu" @click="toggleTreeDrawer" />
 
       <q-toolbar-title> Home stockpile </q-toolbar-title>
-
-      <q-btn dense flat round icon="menu" @click="toggleNavigationDrawer" />
+      <div class="row">
+        <q-select
+          label="Select Language"
+          v-model="$i18n.locale"
+          map-options
+          emit-value
+          borderless
+          label-color="white"
+          option-value="value"
+          option-label="label"
+          :options="langs"
+          class="q-mr-sm"
+        />
+        <q-btn dense flat round icon="menu" @click="toggleNavigationDrawer" />
+      </div>
     </q-toolbar>
   </q-header>
 </template>
+
+<style scoped>
+:deep(.q-select) {
+  width: 10rem;
+}
+</style>
