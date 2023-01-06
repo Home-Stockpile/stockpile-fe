@@ -31,8 +31,8 @@ function filterByTag(
   }
   if (element.items) {
     let item = null;
-    for (let i = 0; i < element.items.length; i++) {
-      item = filterByTag(element.items[i], tagForSearch, searchResult);
+    for (let node of element.items) {
+      item = filterByTag(node, tagForSearch, searchResult);
     }
     return item;
   }
@@ -198,5 +198,3 @@ onMounted(() => {
     </q-card>
   </q-drawer>
 </template>
-
-<style scoped></style>

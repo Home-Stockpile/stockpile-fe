@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeMount, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useTreeNodes } from "@/store/treeNodes";
 import AddNodeDialog from "@/components/AddNodeDialog.vue";
