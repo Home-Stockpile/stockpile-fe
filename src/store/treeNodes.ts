@@ -121,6 +121,12 @@ export const useTreeNodes = defineStore("treeNodes", {
               },
             ],
           },
+          {
+            key: "3",
+            label: "Empty Node",
+            to: "/section/3",
+            items: [],
+          },
         ],
       } as INode,
     };
