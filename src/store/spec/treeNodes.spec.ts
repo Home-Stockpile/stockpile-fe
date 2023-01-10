@@ -4,6 +4,7 @@ import { describe, expect, beforeEach, test } from "vitest";
 import { ITag } from "@/types/tags";
 const expectedTree = {
   key: "0",
+  label: "root",
   to: "/",
   icon: "pi pi-home",
   items: [
@@ -134,21 +135,21 @@ describe("treeNodes", () => {
       test("getItem returns item by 'path' 1_1_1", () => {
         const treeNode = useTreeNodes();
         const expectedItem = expectedTree.items[0].items[0].items[0];
-        expect(
-          treeNode.getItem(treeNode.getTree, ["1", "1", "1"])
-        ).toMatchObject(expectedItem);
+        expect(treeNode.getItem(expectedTree, ["1", "1", "1"])).toMatchObject(
+          expectedItem
+        );
       });
 
       test("getItem returns item by 'path' 0", () => {
         const treeNode = useTreeNodes();
-        expect(treeNode.getItem(treeNode.getTree, ["0"])).toMatchObject(
+        expect(treeNode.getItem(expectedTree, ["0"])).toMatchObject(
           expectedTree
         );
       });
 
       test("getItem returns null when 'path' is empty", () => {
         const treeNode = useTreeNodes();
-        expect(treeNode.getItem(treeNode.getTree, [""])).toBe(null);
+        expect(treeNode.getItem(expectedTree, [""])).toBe(null);
       });
       test("getItem returns null when tree isn't transferred by params", () => {
         const treeNode = useTreeNodes();
@@ -286,7 +287,7 @@ describe("treeNodes", () => {
         ];
 
         expect(
-          treeNode.getBreadcrumbs(treeNode.getTree.items, ["1", "1", "1"], [])
+          treeNode.getBreadcrumbs(expectedTree.items, ["1", "1", "1"], [])
         ).toMatchObject(expectedBreadcrumbs);
       });
     });
@@ -324,6 +325,7 @@ describe("treeNodes", () => {
         };
         const treeAfterAddItem = {
           key: "0",
+          label: "root",
           to: "/",
           icon: "pi pi-home",
           items: [
@@ -459,6 +461,7 @@ describe("treeNodes", () => {
         };
         const treeAfterAddItemInEmptyNode = {
           key: "0",
+          label: "root",
           to: "/",
           icon: "pi pi-home",
           items: [
@@ -594,6 +597,7 @@ describe("treeNodes", () => {
         };
         const treeAfterAddInRootNode = {
           key: "0",
+          label: "root",
           to: "/",
           icon: "pi pi-home",
           items: [
@@ -607,10 +611,14 @@ describe("treeNodes", () => {
         };
         const emptyTree = {
           key: "0",
+          label: "root",
           to: "/",
           icon: "pi pi-home",
           items: [],
         };
+        treeNode.removeNode(["0"], "1");
+        treeNode.removeNode(["0"], "2");
+        treeNode.removeNode(["0"], "3");
         expect(treeNode.tree).toMatchObject(emptyTree);
         treeNode.addTreeNode(draftItem, ["0"], "/section/");
         expect(treeNode.tree).toMatchObject(treeAfterAddInRootNode);
@@ -622,6 +630,7 @@ describe("treeNodes", () => {
         const treeNode = useTreeNodes();
         const treeAfterToggleFavorites = {
           key: "0",
+          label: "root",
           to: "/",
           icon: "pi pi-home",
           items: [
@@ -736,7 +745,7 @@ describe("treeNodes", () => {
           ],
         };
         expect(treeNode.tree).toMatchObject(expectedTree);
-        expect(useTreeNodes().toggleFavorites(["1", "1", "1"]));
+        useTreeNodes().toggleFavorites(["1", "1", "1"]);
         expect(treeNode.tree).toMatchObject(treeAfterToggleFavorites);
       });
     });
@@ -745,6 +754,7 @@ describe("treeNodes", () => {
         const treeNode = useTreeNodes();
         const treeAfterToggleTagFavorites = {
           key: "0",
+          label: "root",
           to: "/",
           icon: "pi pi-home",
           items: [
@@ -858,17 +868,16 @@ describe("treeNodes", () => {
           ],
         };
         expect(treeNode.tree).toMatchObject(expectedTree);
-        expect(
-          useTreeNodes().toggleTagFavorites(treeNode.getTree, {
-            name: "Tag1",
-            favorite: false,
-          })
-        );
+
+        useTreeNodes().toggleTagFavorites(treeNode.getTree, {
+          name: "Tag1",
+          favorite: false,
+        });
         expect(treeNode.tree).toMatchObject(treeAfterToggleTagFavorites);
       });
     });
-    describe("editItem", () => {
-      test("editItem edits node", () => {
+    describe("editNode", () => {
+      test("editNode edits node", () => {
         const treeNode = useTreeNodes();
         const newItem = {
           key: "2_2_1",
@@ -881,6 +890,7 @@ describe("treeNodes", () => {
         };
         const treeAfterEditing = {
           key: "0",
+          label: "root",
           to: "/",
           icon: "pi pi-home",
           items: [
@@ -994,15 +1004,16 @@ describe("treeNodes", () => {
           ],
         };
         expect(treeNode.tree).toMatchObject(expectedTree);
-        expect(useTreeNodes().editItem(newItem));
+        useTreeNodes().editNode(newItem);
         expect(treeNode.tree).toMatchObject(treeAfterEditing);
       });
     });
     describe("remove", () => {
-      test("removeItem removes node", () => {
+      test("removeNode removes node", () => {
         const treeNode = useTreeNodes();
         const treeAfterRemoving = {
           key: "0",
+          label: "root",
           to: "/",
           icon: "pi pi-home",
           items: [
@@ -1107,7 +1118,7 @@ describe("treeNodes", () => {
           ],
         };
         expect(treeNode.tree).toMatchObject(expectedTree);
-        expect(useTreeNodes().removeItem(["2", "2"], "2_2_1"));
+        useTreeNodes().removeNode(["2", "2"], "2_2_1");
         expect(treeNode.tree).toMatchObject(treeAfterRemoving);
       });
     });

@@ -18,6 +18,7 @@ export const useTreeNodes = defineStore("treeNodes", {
       tree: {
         key: "0",
         to: "/",
+        label: "root",
         icon: "pi pi-home",
         items: [
           {
@@ -174,11 +175,11 @@ export const useTreeNodes = defineStore("treeNodes", {
       return null;
     },
 
-    editItem(newItem: INode) {
+    editNode(newItem: INode) {
       const currentItem = this.getItem(this.getTree, newItem.key.split("_"));
       Object.assign(currentItem, newItem);
     },
-    removeItem(rootItemPath: string[], itemPath: string) {
+    removeNode(rootItemPath: string[], itemPath: string) {
       const rootItem: INode = this.getItem(this.getTree, rootItemPath);
       rootItem.items = rootItem.items.filter((i) => i.key !== itemPath);
     },
