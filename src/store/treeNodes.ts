@@ -209,7 +209,7 @@ export const useTreeNodes = defineStore("treeNodes", {
         if (element.favorites) {
           searchResult.push(element);
         }
-        if (element.items) {
+        if (element.items && element.items.length) {
           let treeNode = [];
           element.items.forEach(
             (item) =>
@@ -249,7 +249,7 @@ export const useTreeNodes = defineStore("treeNodes", {
           });
         }
 
-        if (element.items) {
+        if (element.items && element.items.length) {
           let treeNode = [];
           element.items.forEach(
             (item) => (treeNode = getTags(item, searchResult) || searchResult)
