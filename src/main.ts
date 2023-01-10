@@ -11,6 +11,7 @@ import { Quasar } from "quasar";
 import "quasar/src/css/index.sass";
 
 import { messages } from "@/i18n";
+
 import { createI18n } from "vue-i18n";
 
 const i18n = createI18n({

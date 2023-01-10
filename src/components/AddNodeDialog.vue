@@ -116,8 +116,8 @@ function addTreeNode(newNode: IDraftNode, routerPath: string) {
   hideDialog();
 }
 
-function editItem(newNode: IDraftNode): void {
-  treeStore.editItem({
+function editNode(newNode: IDraftNode): void {
+  treeStore.editNode({
     ...newNode,
     key: props.currentItem.key,
     to: props.currentItem.to,
@@ -139,7 +139,7 @@ function modifyItem(newNode: IDraftNode) {
 
   if (props.isEdit) {
     newNode.items = props.currentItem.items;
-    editItem(newNode);
+    editNode(newNode);
   } else {
     addTreeNode(newNode, "/item/");
   }
@@ -156,7 +156,7 @@ function modifySection(newNode: IDraftNode) {
   }
 
   if (props.isEdit) {
-    editItem(newNode);
+    editNode(newNode);
   } else {
     addTreeNode(newNode, "/section/");
   }
