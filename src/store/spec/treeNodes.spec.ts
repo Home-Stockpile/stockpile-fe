@@ -1,6 +1,6 @@
 import { setActivePinia, createPinia } from "pinia";
 import { useTreeNodes } from "../treeNodes";
-import { describe, it, expect, beforeEach, test } from "vitest";
+import { describe, expect, beforeEach, test } from "vitest";
 import { ITag } from "@/types/tags";
 const expectedTree = {
   key: "0",
@@ -122,16 +122,16 @@ describe("treeNodes", () => {
     setActivePinia(createPinia());
   });
   describe("getters", () => {
-    describe("get tree", () => {
-      test("getTree", () => {
+    describe("getTree", () => {
+      test("get tree must return client's tree of nodes", () => {
         const treeNode = useTreeNodes();
         expect(treeNode.getTree).toMatchObject(expectedTree);
         treeNode.getItem(treeNode.getTree, ["1"]);
       });
     });
 
-    describe("getItem", () => {
-      test("getItem 1_1_1", () => {
+    describe("getItem must return item that required by 'path' ", () => {
+      test("getItem returns item by 'path' 1_1_1", () => {
         const treeNode = useTreeNodes();
         const expectedItem = expectedTree.items[0].items[0].items[0];
         expect(
@@ -139,25 +139,25 @@ describe("treeNodes", () => {
         ).toMatchObject(expectedItem);
       });
 
-      test("get root item", () => {
+      test("getItem returns item by 'path' 0", () => {
         const treeNode = useTreeNodes();
         expect(treeNode.getItem(treeNode.getTree, ["0"])).toMatchObject(
           expectedTree
         );
       });
 
-      test("getItem no item", () => {
+      test("getItem returns null when 'path' is empty", () => {
         const treeNode = useTreeNodes();
         expect(treeNode.getItem(treeNode.getTree, [""])).toBe(null);
       });
-      test("getItem no tree", () => {
+      test("getItem returns null when tree isn't transferred by params", () => {
         const treeNode = useTreeNodes();
         expect(treeNode.getItem(null, ["1"])).toBe(null);
       });
     });
 
     describe("getFavorites", () => {
-      test("getFavorites", () => {
+      test("getFavorites returns array of favorite items", () => {
         const treeNode = useTreeNodes();
         const expectedFavorites = [
           {
@@ -217,7 +217,7 @@ describe("treeNodes", () => {
     });
 
     describe("getBreadcrumbs", () => {
-      test("getBreadcrumbs 1_1_1", () => {
+      test("getBreadcrumbs returns array of items ordered by 'path' to current item", () => {
         const treeNode = useTreeNodes();
         const expectedBreadcrumbs = [
           {
@@ -292,7 +292,7 @@ describe("treeNodes", () => {
     });
 
     describe("getTags", () => {
-      test("getTags", () => {
+      test("getTags returns array of all tags that exists in tree", () => {
         const treeNode = useTreeNodes();
         const expectedTags: ITag[] = [
           { name: "Tag1", favorite: false },
@@ -305,7 +305,7 @@ describe("treeNodes", () => {
     });
 
     describe("getFavTags", () => {
-      test("getTags", () => {
+      test("getFavTags returns array of favorite tags that exists in tree", () => {
         const treeNode = useTreeNodes();
         expect(treeNode.getFavoriteTags.value).toMatchObject([]);
       });
@@ -313,8 +313,8 @@ describe("treeNodes", () => {
   });
 
   describe("actions", () => {
-    describe("add tree node", () => {
-      test("add item", () => {
+    describe("addTreeNode", () => {
+      test("addTreeNode adds new node in the tree node if in node already exists node", () => {
         const treeNode = useTreeNodes();
         const draftItem = {
           label: "Item",
@@ -448,7 +448,8 @@ describe("treeNodes", () => {
         treeNode.addTreeNode(draftItem, ["1", "1"], "/item/");
         expect(treeNode.tree).toMatchObject(treeAfterAddItem);
       });
-      test("add item case first item in node", () => {
+
+      test("addTreeNode adds new node in the tree node if it's first item in node", () => {
         const treeNode = useTreeNodes();
         const draftItem = {
           label: "Item",
@@ -584,10 +585,40 @@ describe("treeNodes", () => {
         treeNode.addTreeNode(draftItem, ["3"], "/item/");
         expect(treeNode.tree).toMatchObject(treeAfterAddItemInEmptyNode);
       });
+
+      test("addTreeNode in the root node", () => {
+        const treeNode = useTreeNodes();
+        const draftItem = {
+          label: "Section",
+          items: [],
+        };
+        const treeAfterAddInRootNode = {
+          key: "0",
+          to: "/",
+          icon: "pi pi-home",
+          items: [
+            {
+              key: "1",
+              label: "Section",
+              to: "/section/1",
+              items: [],
+            },
+          ],
+        };
+        const emptyTree = {
+          key: "0",
+          to: "/",
+          icon: "pi pi-home",
+          items: [],
+        };
+        expect(treeNode.tree).toMatchObject(emptyTree);
+        treeNode.addTreeNode(draftItem, ["0"], "/section/");
+        expect(treeNode.tree).toMatchObject(treeAfterAddInRootNode);
+      });
     });
 
     describe("toggleFavorites", () => {
-      test("toggleFavorites", () => {
+      test("toggleFavorites toggles 'favorites' property of node", () => {
         const treeNode = useTreeNodes();
         const treeAfterToggleFavorites = {
           key: "0",
@@ -710,7 +741,7 @@ describe("treeNodes", () => {
       });
     });
     describe("toggleTagFavorites", () => {
-      test("toggleTagFavorites", () => {
+      test("toggleTagFavorites toggles 'favorite' property of Tag", () => {
         const treeNode = useTreeNodes();
         const treeAfterToggleTagFavorites = {
           key: "0",
@@ -834,6 +865,250 @@ describe("treeNodes", () => {
           })
         );
         expect(treeNode.tree).toMatchObject(treeAfterToggleTagFavorites);
+      });
+    });
+    describe("editItem", () => {
+      test("editItem edits node", () => {
+        const treeNode = useTreeNodes();
+        const newItem = {
+          key: "2_2_1",
+          label: "Edited item",
+          favorites: true,
+          description: "Edited item",
+          tags: [{ name: "Tag1", favorite: false }],
+          quantity: 11,
+          to: "/item/2_2_1",
+        };
+        const treeAfterEditing = {
+          key: "0",
+          to: "/",
+          icon: "pi pi-home",
+          items: [
+            {
+              key: "1",
+              label: "Kitchen",
+              favorites: true,
+              icon: "https://media.istockphoto.com/photos/blue-sky-and-white-clouds-background-picture-id825778252?b=1&k=20&m=825778252&s=612x612&w=0&h=C2j1HeXd5swrFsvrBqN9GIUmewXPSERRg9quVii3prM=",
+              to: "/section/1",
+              items: [
+                {
+                  key: "1_1",
+                  label: "Store",
+                  to: "/section/1_1",
+                  items: [
+                    {
+                      key: "1_1_1",
+                      label: "Fork",
+                      description: "this is a fork",
+                      tags: [{ name: "Tag1", favorite: false }],
+                      quantity: 24,
+                      to: `/item/1_1_1`,
+                    },
+                    {
+                      key: "1_1_2",
+                      label: "Spoon",
+                      description: "this is a spoon",
+                      tags: [{ name: "Tag2", favorite: false }],
+                      quantity: 14,
+                      to: "/item/1_1_2",
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              key: "2",
+              label: "Garage",
+              favorites: false,
+              to: "/section/2",
+              items: [
+                {
+                  key: "2_1",
+                  label: "Toolbox",
+                  favorites: false,
+                  to: "/section/2_1",
+                  items: [
+                    {
+                      key: "2_1_1",
+                      label: "Hummer",
+                      favorites: true,
+                      description: "this is a Hummer",
+                      tags: [{ name: "Tag3", favorite: false }],
+                      quantity: 1,
+                      to: "/item/2_1_1",
+                    },
+                    {
+                      key: "2_1_2",
+                      label: "Wrench 1",
+                      favorites: false,
+                      description: "this is a Wrench",
+                      tags: [{ name: "Tag4", favorite: false }],
+                      quantity: 1,
+                      to: `/item/2_1_2`,
+                    },
+                    {
+                      key: "2_1_3",
+                      label: "Flat screwdriwer",
+                      favorites: false,
+                      description: "this is a screwdriwer",
+                      tags: [{ name: "Tag1", favorite: false }],
+                      quantity: 4,
+                      to: "/item/2_1_3",
+                    },
+                  ],
+                },
+                {
+                  key: "2_2",
+                  label: "Case",
+                  favorites: false,
+                  to: "/section/2_2",
+                  items: [
+                    {
+                      key: "2_2_1",
+                      label: "Edited item",
+                      favorites: true,
+                      description: "Edited item",
+                      tags: [{ name: "Tag1", favorite: false }],
+                      quantity: 11,
+                      to: "/item/2_2_1",
+                    },
+                    {
+                      key: "2_2_2",
+                      label: "Bolts",
+                      favorites: false,
+                      description: "this is Bolts",
+                      tags: [{ name: "Tag3", favorite: false }],
+                      quantity: 31,
+                      to: `/item/2_2_2`,
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              key: "3",
+              label: "Empty Node",
+              to: "/section/3",
+              items: [],
+            },
+          ],
+        };
+        expect(treeNode.tree).toMatchObject(expectedTree);
+        expect(useTreeNodes().editItem(newItem));
+        expect(treeNode.tree).toMatchObject(treeAfterEditing);
+      });
+    });
+    describe("remove", () => {
+      test("removeItem removes node", () => {
+        const treeNode = useTreeNodes();
+        const treeAfterRemoving = {
+          key: "0",
+          to: "/",
+          icon: "pi pi-home",
+          items: [
+            {
+              key: "1",
+              label: "Kitchen",
+              favorites: true,
+              icon: "https://media.istockphoto.com/photos/blue-sky-and-white-clouds-background-picture-id825778252?b=1&k=20&m=825778252&s=612x612&w=0&h=C2j1HeXd5swrFsvrBqN9GIUmewXPSERRg9quVii3prM=",
+              to: "/section/1",
+              items: [
+                {
+                  key: "1_1",
+                  label: "Store",
+                  to: "/section/1_1",
+                  items: [
+                    {
+                      key: "1_1_1",
+                      label: "Fork",
+                      description: "this is a fork",
+                      tags: [{ name: "Tag1", favorite: false }],
+                      quantity: 24,
+                      to: `/item/1_1_1`,
+                    },
+                    {
+                      key: "1_1_2",
+                      label: "Spoon",
+                      description: "this is a spoon",
+                      tags: [{ name: "Tag2", favorite: false }],
+                      quantity: 14,
+                      to: "/item/1_1_2",
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              key: "2",
+              label: "Garage",
+              favorites: false,
+              to: "/section/2",
+              items: [
+                {
+                  key: "2_1",
+                  label: "Toolbox",
+                  favorites: false,
+                  to: "/section/2_1",
+                  items: [
+                    {
+                      key: "2_1_1",
+                      label: "Hummer",
+                      favorites: true,
+                      description: "this is a Hummer",
+                      tags: [{ name: "Tag3", favorite: false }],
+                      quantity: 1,
+                      to: "/item/2_1_1",
+                    },
+                    {
+                      key: "2_1_2",
+                      label: "Wrench 1",
+                      favorites: false,
+                      description: "this is a Wrench",
+                      tags: [{ name: "Tag4", favorite: false }],
+                      quantity: 1,
+                      to: `/item/2_1_2`,
+                    },
+                    {
+                      key: "2_1_3",
+                      label: "Flat screwdriwer",
+                      favorites: false,
+                      description: "this is a screwdriwer",
+                      tags: [{ name: "Tag1", favorite: false }],
+                      quantity: 4,
+                      to: "/item/2_1_3",
+                    },
+                  ],
+                },
+                {
+                  key: "2_2",
+                  label: "Case",
+                  favorites: false,
+                  to: "/section/2_2",
+                  items: [
+                    {
+                      key: "2_2_2",
+                      label: "Bolts",
+                      favorites: false,
+                      description: "this is Bolts",
+                      tags: [{ name: "Tag3", favorite: false }],
+                      quantity: 31,
+                      to: `/item/2_2_2`,
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              key: "3",
+              label: "Empty Node",
+              to: "/section/3",
+              items: [],
+            },
+          ],
+        };
+        expect(treeNode.tree).toMatchObject(expectedTree);
+        expect(useTreeNodes().removeItem(["2", "2"], "2_2_1"));
+        expect(treeNode.tree).toMatchObject(treeAfterRemoving);
       });
     });
   });
