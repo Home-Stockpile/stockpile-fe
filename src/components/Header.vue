@@ -42,7 +42,6 @@ const langs = [
           :options="langs"
           class="q-mr-sm"
         />
-        <q-btn dense flat round icon="menu" @click="toggleNavigationDrawer" />
       </div>
     </q-toolbar>
   </q-header>

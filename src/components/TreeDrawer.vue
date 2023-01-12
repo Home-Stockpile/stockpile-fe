@@ -23,7 +23,6 @@ const isFavoriteCategory = ref(false);
 const searchResults = ref<INode[]>([]);
 const tagForSearch = ref("");
 const isFilter = ref(false);
-const exp = ref([]);
 
 const currentTree = computed(() => {
   if (tagForSearch.value) {
@@ -70,9 +69,15 @@ function changeFilters(value: INode[], tag): void {
   }
   hideFilter();
 }
-function f(e) {
-  e.removeAllListeners();
-  exp.value = [];
+function setTreeNodeIcon(item): string {
+  if (item.node.icon) {
+    return item.node.icon;
+  }
+  if (item.node.items) {
+    return defaultIcons.value.folderIcon;
+  }
+
+  return defaultIcons.value.itemIcon;
 }
 </script>
 
@@ -146,24 +151,18 @@ function f(e) {
         :nodes="currentTree"
         :filter="searchQuery"
         node-key="key"
-        v-model:expanded="exp"
         children-key="items"
         class="q-pt-sm overflow-auto"
       >
         <template v-slot:default-header="item">
           <RouterLink
-            @click.stop="f"
+            @click.stop=""
             class="row justify-between full-width"
             :to="item.node.to"
           >
             <div class="row items-center">
               <q-img
-                :src="
-                  item.node.icon ||
-                  (item.node.items
-                    ? defaultIcons.folderIcon
-                    : defaultIcons.itemIcon)
-                "
+                :src="setTreeNodeIcon(item)"
                 width="30px"
                 height="30px"
                 ratio="1"
