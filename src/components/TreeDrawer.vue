@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AddNodeDialog from "@/components/AddNodeDialog.vue";
 import { useTreeNodes } from "@/store/treeNodes";
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { INode } from "@/types/treeNodes";
 import Filters from "@/components/Filters.vue";
 import { DialogTypes } from "@/types/dialog";
@@ -32,7 +32,7 @@ const currentTree = computed(() => {
     return favorites.value;
   }
 
-  return tree.value.items;
+  return tree.value.items || [];
 });
 
 function hideDialog(): void {
@@ -70,6 +70,9 @@ function changeFilters(value: INode[], tag): void {
 
   hideFilter();
 }
+onMounted(() => {
+  console.log("curr", currentTree.value);
+});
 </script>
 
 <template>
@@ -134,10 +137,11 @@ function changeFilters(value: INode[], tag): void {
         />
       </div>
     </div>
-    <div v-show="tagForSearch">
-      {{ $t("treeDrawer.filter") }} {{ tagForSearch }}
-    </div>
+
     <q-scroll-area class="q-pa-sm">
+      <div v-show="tagForSearch">
+        {{ $t("treeDrawer.filter") }} {{ tagForSearch }}
+      </div>
       <q-tree
         :nodes="currentTree"
         :filter="searchQuery"

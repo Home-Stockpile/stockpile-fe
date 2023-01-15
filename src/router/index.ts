@@ -30,7 +30,10 @@ router.beforeEach((to) => {
     treeStore.tree,
     String(to.params.key).split("_")
   );
-  if (!currentItem && to.fullPath !== "/") {
+  if (localStorage.getItem("uid") && !currentItem && to.fullPath !== "/") {
+    return "/";
+  }
+  if (!localStorage.getItem("uid") && to.fullPath !== "/") {
     return "/";
   }
 });

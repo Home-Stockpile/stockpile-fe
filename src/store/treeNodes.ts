@@ -5,7 +5,9 @@ import { sortByType } from "@/functions/sortByType";
 import { ITag } from "@/types/tags";
 import { computed } from "vue";
 import { IDraftNode } from "@/types/treeNodes";
-
+import { getDatabase, onValue } from "firebase/database";
+import { ref as fbRef } from "@firebase/database";
+import { updateTree } from "@/functions/updateTree";
 export const useTreeNodes = defineStore("treeNodes", {
   state: () => {
     return {
@@ -15,117 +17,20 @@ export const useTreeNodes = defineStore("treeNodes", {
         itemIcon:
           "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/SCP_Foundation_%28emblem%29.svg/1200px-SCP_Foundation_%28emblem%29.svg.png",
       },
-      tree: {
-        key: "0",
-        to: "/",
-        icon: "pi pi-home",
-        items: [
-          {
-            key: "1",
-            label: "Kitchen",
-            favorites: true,
-            icon: "https://media.istockphoto.com/photos/blue-sky-and-white-clouds-background-picture-id825778252?b=1&k=20&m=825778252&s=612x612&w=0&h=C2j1HeXd5swrFsvrBqN9GIUmewXPSERRg9quVii3prM=",
-            to: "/section/1",
-            items: [
-              {
-                key: "1_1",
-                label: "Store",
-                to: "/section/1_1",
-                items: [
-                  {
-                    key: "1_1_1",
-                    label: "Fork",
-                    description: "this is a fork",
-                    tags: [{ name: "Tag1", favorite: false }],
-                    quantity: 24,
-                    to: `/item/1_1_1`,
-                  },
-                  {
-                    key: "1_1_2",
-                    label: "Spoon",
-                    description: "this is a spoon",
-                    tags: [{ name: "Tag2", favorite: false }],
-                    quantity: 14,
-                    to: "/item/1_1_2",
-                  },
-                ],
-              },
-            ],
-          },
-          {
-            key: "2",
-            label: "Garage",
-            favorites: false,
-            to: "/section/2",
-            items: [
-              {
-                key: "2_1",
-                label: "Toolbox",
-                favorites: false,
-                to: "/section/2_1",
-                items: [
-                  {
-                    key: "2_1_1",
-                    label: "Hummer",
-                    favorites: true,
-                    description: "this is a Hummer",
-                    tags: [{ name: "Tag3", favorite: false }],
-                    quantity: 1,
-                    to: "/item/2_1_1",
-                  },
-                  {
-                    key: "2_1_2",
-                    label: "Wrench 1",
-                    favorites: false,
-                    description: "this is a Wrench",
-                    tags: [{ name: "Tag4", favorite: false }],
-                    quantity: 1,
-                    to: `/item/2_1_2`,
-                  },
-                  {
-                    key: "2_1_3",
-                    label: "Flat screwdriwer",
-                    favorites: false,
-                    description: "this is a screwdriwer",
-                    tags: [{ name: "Tag1", favorite: false }],
-                    quantity: 4,
-                    to: "/item/2_1_3",
-                  },
-                ],
-              },
-              {
-                key: "2_2",
-                label: "Case",
-                favorites: false,
-                to: "/section/2_2",
-                items: [
-                  {
-                    key: "2_2_1",
-                    label: "Nuts",
-                    favorites: true,
-                    description: "this is Nuts",
-                    tags: [{ name: "Tag2", favorite: false }],
-                    quantity: 54,
-                    to: "/item/2_2_1",
-                  },
-                  {
-                    key: "2_2_2",
-                    label: "Bolts",
-                    favorites: false,
-                    description: "this is Bolts",
-                    tags: [{ name: "Tag3", favorite: false }],
-                    quantity: 31,
-                    to: `/item/2_2_2`,
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-      } as INode,
+      tree: {} as INode,
     };
   },
+
   actions: {
+    async fetchTree() {
+      const db = getDatabase();
+      onValue(fbRef(db, localStorage.getItem("uid")), (snapshot) => {
+        this.tree = snapshot.val();
+      });
+    },
+    setSigned(uid) {
+      localStorage.setItem("uid", uid);
+    },
     addTreeNode(item: IDraftNode, rootItemPath: string[], routerPath) {
       const path = rootItemPath.slice(0).join("_");
       const rootItem: INode = this.getItem(this.getTree, rootItemPath);
@@ -141,48 +46,60 @@ export const useTreeNodes = defineStore("treeNodes", {
         to: routerPath + nextNodeKey(lastKey),
       });
       rootItem.items = sortByType(rootItem);
+
+      updateTree(this.tree);
     },
 
     toggleFavorites(itemPath: string[]) {
       const item = this.getItem(this.getTree, itemPath);
       item.favorites = !item.favorites;
+      updateTree(this.tree);
     },
 
-    toggleTagFavorites(element: INode, tag: ITag): null {
-      if (!element.items) {
-        element.tags.forEach((eTag, index) => {
-          if (eTag.name === tag.name) {
-            element.tags[index].favorite = !element.tags[index].favorite;
-          }
-        });
-      } else {
-        let treeNode = null;
-        element.items.forEach(
-          (item) => (treeNode = this.toggleTagFavorites(item, tag) || null)
-        );
-        return treeNode;
+    toggleTagFavorites(element: INode, tag: ITag) {
+      function toggleTagFavorites(element, tag) {
+        if (!element.items) {
+          element.tags.forEach((eTag, index) => {
+            if (eTag.name === tag.name) {
+              element.tags[index].favorite = !element.tags[index].favorite;
+            }
+          });
+        } else {
+          let treeNode = null;
+          element.items.forEach(
+            (item) => (treeNode = toggleTagFavorites(item, tag) || null)
+          );
+
+          return treeNode;
+        }
+        return null;
       }
-      return null;
+      toggleTagFavorites(element, tag);
+      updateTree(this.tree);
     },
 
     editItem(newItem: INode) {
       const currentItem = this.getItem(this.getTree, newItem.key.split("_"));
       Object.assign(currentItem, newItem);
+      updateTree(this.tree);
     },
+
     removeItem(rootItemPath: string[], itemPath: string) {
       const rootItem: INode = this.getItem(this.getTree, rootItemPath);
       rootItem.items = rootItem.items.filter((i) => i.key !== itemPath);
+      updateTree(this.tree);
     },
   },
+
   getters: {
-    getTree: (state): INode => state.tree,
+    getTree: (state) => state.tree,
     getDefaultIcons: (state) => state.defaultTreeIcons,
     getItem: () =>
       function getItem(item: INode, path: string[]): INode | null {
         if (path[0] === "0") {
           return item;
         }
-        if (!item) {
+        if (!item || !Object.keys(item).length) {
           return null;
         }
         if (!item.items) {
@@ -247,7 +164,6 @@ export const useTreeNodes = defineStore("treeNodes", {
             }
           });
         }
-
         if (element.items) {
           let treeNode = [];
           element.items.forEach(

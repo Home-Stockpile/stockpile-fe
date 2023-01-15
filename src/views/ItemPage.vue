@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeMount, ref, watch } from "vue";
+import { computed, onBeforeMount, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useTreeNodes } from "@/store/treeNodes";
 import type { INode } from "@/types/treeNodes";
@@ -11,7 +11,7 @@ import { maxValue } from "@vuelidate/validators";
 import useVuelidate from "@vuelidate/core";
 const route = useRoute();
 const treeStore = useTreeNodes();
-const tree = treeStore.getTree;
+const tree = computed(() => treeStore.getTree);
 const currentItem = ref<INode>();
 const dialogVisibility = ref(false);
 const defaultIcons = treeStore.getDefaultIcons;
@@ -44,18 +44,31 @@ function removeItem(): void {
     .split("_");
   treeStore.removeItem(rootItemPath, String(route.params.key));
 }
-onBeforeMount(() => {
+onMounted(() => {
   currentItem.value = treeStore.getItem(
-    tree,
+    tree.value,
     String(route.params.key).split("_")
   );
-  newQuantity.value = currentItem.value.quantity;
+  if (currentItem.value) {
+    newQuantity.value = currentItem.value.quantity;
+  }
 });
+watch(
+  () => tree.value,
+  () => {
+    currentItem.value = treeStore.getItem(
+      tree.value,
+      String(route.params.key).split("_")
+    );
+    newQuantity.value = currentItem.value.quantity;
+  }
+);
+
 watch(
   () => route.params.key,
   () => {
     currentItem.value = treeStore.getItem(
-      tree,
+      tree.value,
       String(route.params.key).split("_")
     );
     newQuantity.value = currentItem.value.quantity;
@@ -72,7 +85,7 @@ watch(
     :is-edit="true"
   />
 
-  <div class="q-pa-sm bg-white">
+  <div v-if="currentItem" class="q-pa-sm bg-white">
     <NodeBreadcrumbs />
     <div>
       {{ $t("general.tags") }}

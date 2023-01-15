@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, ref, watch } from "vue";
+import { computed, onBeforeMount, onMounted, onUpdated, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useTreeNodes } from "@/store/treeNodes";
 import AddNodeDialog from "@/components/AddNodeDialog.vue";
@@ -12,7 +12,7 @@ import NodeBreadcrumbs from "@/components/NodeBreadcrumbs.vue";
 const route = useRoute();
 
 const treeStore = useTreeNodes();
-const tree = treeStore.getTree;
+const tree = computed(() => treeStore.getTree);
 const defaultIcons = treeStore.getDefaultIcons;
 const dialogType = ref<AddDialog>(DialogTypes.section);
 const currentItem = ref<INode>();
@@ -48,18 +48,26 @@ function removeItem(): void {
   treeStore.removeItem(rootItemPath, String(route.params.key));
 }
 
-onBeforeMount(() => {
+watch(
+  () => tree.value,
+  () => {
+    currentItem.value = treeStore.getItem(
+      tree.value,
+      String(route.params.key).split("_")
+    );
+  }
+);
+onMounted(() => {
   currentItem.value = treeStore.getItem(
-    tree,
+    tree.value,
     String(route.params.key).split("_")
   );
 });
-
 watch(
   () => route.params.key,
   () => {
     currentItem.value = treeStore.getItem(
-      tree,
+      tree.value,
       String(route.params.key).split("_")
     );
   }
@@ -74,7 +82,7 @@ watch(
     :is-edit="isEdit"
   />
 
-  <div class="q-pa-sm bg-white">
+  <div class="q-pa-sm bg-white" v-if="currentItem">
     <NodeBreadcrumbs />
 
     <div class="row justify-between bg-white">
