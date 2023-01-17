@@ -40,6 +40,9 @@ export const useTreeNodes = defineStore("treeNodes", {
       } else {
         lastKey = rootItem.items[rootItem.items.length - 1].key;
       }
+      if (rootItem.key === "0" && !rootItem.items.length) {
+        lastKey = "0";
+      }
       rootItem.items.push({
         ...item,
         key: nextNodeKey(lastKey),
@@ -78,13 +81,12 @@ export const useTreeNodes = defineStore("treeNodes", {
       updateTree(this.tree);
     },
 
-    editItem(newItem: INode) {
+    editNode(newItem: INode) {
       const currentItem = this.getItem(this.getTree, newItem.key.split("_"));
       Object.assign(currentItem, newItem);
       updateTree(this.tree);
     },
-
-    removeItem(rootItemPath: string[], itemPath: string) {
+    removeNode(rootItemPath: string[], itemPath: string) {
       const rootItem: INode = this.getItem(this.getTree, rootItemPath);
       rootItem.items = rootItem.items.filter((i) => i.key !== itemPath);
       updateTree(this.tree);
@@ -102,12 +104,9 @@ export const useTreeNodes = defineStore("treeNodes", {
         if (!item || !Object.keys(item).length) {
           return null;
         }
-        if (!item.items) {
-          return item;
-        }
         const keyFirstPart = path.slice(0, 2).join("_");
         const itemKey = path.shift();
-        const findItem = item.items.find((i) => i.key === itemKey);
+        const findItem = item.items.find((i) => i.key === itemKey) || null;
         if (!path.length) {
           return findItem;
         }
@@ -120,7 +119,7 @@ export const useTreeNodes = defineStore("treeNodes", {
         if (element.favorites) {
           searchResult.push(element);
         }
-        if (element.items) {
+        if (element.items && element.items.length) {
           let treeNode = [];
           element.items.forEach(
             (item) =>
@@ -138,9 +137,6 @@ export const useTreeNodes = defineStore("treeNodes", {
         path: string[],
         breadcrumbs: INode[]
       ): INode[] | null {
-        if (!item) {
-          return breadcrumbs;
-        }
         const keyFirstPart = path.slice(0, 2).join("_");
         const itemKey = path.shift();
         const findItem = item.find((i) => i.key === itemKey);
@@ -150,9 +146,7 @@ export const useTreeNodes = defineStore("treeNodes", {
         path.splice(0, 1, keyFirstPart);
 
         breadcrumbs = [...breadcrumbs, findItem];
-        if (!findItem) {
-          return breadcrumbs;
-        }
+
         return getBreadcrumbs(findItem.items, path, breadcrumbs);
       },
     getTags: (state) => {
@@ -164,7 +158,8 @@ export const useTreeNodes = defineStore("treeNodes", {
             }
           });
         }
-        if (element.items) {
+
+        if (element.items && element.items.length) {
           let treeNode = [];
           element.items.forEach(
             (item) => (treeNode = getTags(item, searchResult) || searchResult)

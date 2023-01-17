@@ -1,7 +1,4 @@
 export function nextNodeKey(currentNodeKey: string): string {
-  if (currentNodeKey === "0_0") {
-    return "1";
-  }
   const path = String(currentNodeKey).split("_");
   let firstPartOfKey = path.slice(0, path.length - 1).join("_");
   let lastNumbersOfKey = currentNodeKey;
