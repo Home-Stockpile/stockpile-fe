@@ -34,7 +34,7 @@ function hideDialog(): void {
   dialogVisibility.value = false;
 }
 
-function removeItem(): void {
+function removeNode(): void {
   router.go(-1);
   let rootItemPath: string[] = [];
   if (currentItem.value.key.includes("_")) {
@@ -45,7 +45,7 @@ function removeItem(): void {
     rootItemPath = ["0"];
   }
 
-  treeStore.removeItem(rootItemPath, String(route.params.key));
+  treeStore.removeNode(rootItemPath, String(route.params.key));
 }
 
 onBeforeMount(() => {
@@ -109,7 +109,7 @@ watch(
           class="q-mr-sm"
         />
 
-        <q-btn @click="removeItem" :label="$t('general.delete')" color="red" />
+        <q-btn @click="removeNode" :label="$t('general.delete')" color="red" />
       </div>
     </div>
   </div>

@@ -33,16 +33,16 @@ function hideDialog(): void {
 function changeQuantity(): void {
   $v.value.newQuantity.$touch();
   if (!$v.value.newQuantity.$errors.length) {
-    treeStore.editItem({ ...currentItem.value, quantity: newQuantity.value });
+    treeStore.editNode({ ...currentItem.value, quantity: newQuantity.value });
   }
 }
 
-function removeItem(): void {
+function removeNode(): void {
   router.go(-1);
   const rootItemPath = currentItem.value.key
     .slice(0, currentItem.value.key.lastIndexOf("_"))
     .split("_");
-  treeStore.removeItem(rootItemPath, String(route.params.key));
+  treeStore.removeNode(rootItemPath, String(route.params.key));
 }
 onBeforeMount(() => {
   currentItem.value = treeStore.getItem(
@@ -123,7 +123,7 @@ watch(
         color="primary"
         class="q-mr-sm"
       />
-      <q-btn @click="removeItem" :label="$t('general.delete')" color="red" />
+      <q-btn @click="removeNode" :label="$t('general.delete')" color="red" />
     </div>
   </div>
 </template>
