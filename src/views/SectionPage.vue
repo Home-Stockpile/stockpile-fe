@@ -16,7 +16,20 @@ const tree = treeStore.getTree;
 const defaultIcons = treeStore.getDefaultIcons;
 const dialogType = ref<AddDialog>(DialogTypes.section);
 const currentItem = ref<INode>();
-
+const columns = [
+  {
+    label: "icon",
+    align: "left",
+  },
+  {
+    label: "name",
+    align: "left",
+  },
+  {
+    label: "favorites",
+    align: "left",
+  },
+];
 const nestingLevel = computed(
   () => String(route.params.key).split("_").length < 3
 );
@@ -48,6 +61,12 @@ function removeNode(): void {
   treeStore.removeNode(rootItemPath, String(route.params.key));
 }
 
+function toggleFavorites(key: string): void {
+  treeStore.toggleFavorites(key.split("_"));
+}
+function onRowClick(to) {
+  router.push(to);
+}
 onBeforeMount(() => {
   currentItem.value = treeStore.getItem(
     tree,
@@ -76,7 +95,6 @@ watch(
 
   <div class="q-pa-sm bg-white">
     <NodeBreadcrumbs />
-
     <div class="row justify-between bg-white">
       <div class="row items-center">
         <q-img
@@ -112,5 +130,46 @@ watch(
         <q-btn @click="removeNode" :label="$t('general.delete')" color="red" />
       </div>
     </div>
+
+    <q-table
+      :rows="currentItem.items"
+      :columns="columns"
+      :hide-pagination="true"
+      :pagination="{ page: 1, rowsPerPage: 0 }"
+      row-key="key"
+      bordered
+      class="q-mt-sm no-box-shadow"
+    >
+      <template v-slot:body="props">
+        <q-tr
+          @click="() => onRowClick(props.row.to)"
+          :props="props"
+          class="text-subtitle1 cursor-pointer"
+        >
+          <q-td auto-width>
+            <q-img
+              :src="
+                props.row.icon ||
+                (props.row.items
+                  ? defaultIcons.folderIcon
+                  : defaultIcons.itemIcon)
+              "
+              width="30px"
+              height="30px"
+              ratio="1"
+            />
+          </q-td>
+          <q-td> {{ props.row.label }}</q-td>
+          <q-td auto-width>
+            <div
+              class="row items-center justify-center text-h5"
+              @click.stop.prevent="() => toggleFavorites(props.row.key)"
+            >
+              <q-icon v-if="props.row.favorites" name="favorite" />
+              <q-icon v-else name="favorite_border" /></div
+          ></q-td>
+        </q-tr>
+      </template>
+    </q-table>
   </div>
 </template>
