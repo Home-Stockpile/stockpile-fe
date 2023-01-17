@@ -25,6 +25,9 @@ const tagForSearch = ref("");
 const isFilter = ref(false);
 
 const currentTree = computed(() => {
+  if (!tree.value) {
+    return [];
+  }
   if (tagForSearch.value) {
     return searchResults.value;
   }

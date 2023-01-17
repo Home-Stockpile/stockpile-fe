@@ -57,9 +57,13 @@ const rules = {
     ),
   },
 };
+const $v = useVuelidate(rules, { addForm, newTagName });
 
 function duplicateLabel(value: string) {
   const rootObj = treeStore.getItem(tree, getRootItemPath().split("_"));
+  if (!Object.keys(rootObj).length) {
+    return true;
+  }
   if (
     !props.currentItem &&
     rootObj.items.find(
@@ -80,7 +84,6 @@ function duplicateTag(value: string) {
   }
   return true;
 }
-const $v = useVuelidate(rules, { addForm, newTagName });
 
 function createNewTreeNode(): void {
   $v.value.addForm.$touch();
