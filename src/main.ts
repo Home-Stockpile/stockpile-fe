@@ -7,7 +7,7 @@ import "./assets/base.css";
 import "@quasar/extras/material-icons/material-icons.css";
 
 import App from "./App.vue";
-import { Quasar } from "quasar";
+import { Dialog, Notify, Quasar } from "quasar";
 import "quasar/src/css/index.sass";
 
 import { messages } from "@/i18n";
@@ -25,7 +25,7 @@ const app = createApp(App);
 app.use(createPinia());
 app.use(router);
 app.use(Quasar, {
-  plugins: {},
+  plugins: { Dialog, Notify },
 });
 app.use(i18n);
 

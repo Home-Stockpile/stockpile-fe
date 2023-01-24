@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import AddNodeDialog from "@/components/AddNodeDialog.vue";
 import { useTreeNodes } from "@/store/treeNodes";
-import { computed, onMounted, ref } from "vue";
+import { computed, ref } from "vue";
 import { INode } from "@/types/treeNodes";
 import Filters from "@/components/Filters.vue";
 import { DialogTypes } from "@/types/dialog";
 import { storeToRefs } from "pinia";
+import { setTreeNodeIcon } from "@/functions/setTreeNodeIcon";
 interface IProps {
   treeDrawerOpen: boolean;
 }
@@ -14,7 +15,6 @@ const props = defineProps<IProps>();
 const treeStore = storeToRefs(useTreeNodes());
 const tree = treeStore.getTree;
 const favorites = treeStore.getFavorites;
-const defaultIcons = treeStore.getDefaultIcons;
 
 const addNodeVisibility = ref(false);
 const searchQuery = ref("");
@@ -71,16 +71,6 @@ function changeFilters(value: INode[], tag): void {
     searchResults.value = value;
   }
   hideFilter();
-}
-function setTreeNodeIcon(item): string {
-  if (item.node.icon) {
-    return item.node.icon;
-  }
-  if (item.node.items) {
-    return defaultIcons.value.folderIcon;
-  }
-
-  return defaultIcons.value.itemIcon;
 }
 </script>
 
@@ -166,7 +156,7 @@ function setTreeNodeIcon(item): string {
           >
             <div class="row items-center">
               <q-img
-                :src="setTreeNodeIcon(item)"
+                :src="setTreeNodeIcon(item.node)"
                 width="30px"
                 height="30px"
                 ratio="1"

@@ -31,6 +31,7 @@ const addForm = ref<IDraftNode>({
   quantity: 0,
   icon: "",
   tags: [],
+  items: [],
 });
 
 const rules = {
@@ -60,12 +61,20 @@ const rules = {
 const $v = useVuelidate(rules, { addForm, newTagName });
 
 function duplicateLabel(value: string) {
-  const rootObj = treeStore.getItem(tree, getRootItemPath().split("_"));
+  let rootObj = treeStore.getItem(tree, getRootItemPath().split("_"));
   if (!Object.keys(rootObj).length) {
     return true;
   }
+
+  if (props.currentItem) {
+    let path = String(getRootItemPath()).split("_");
+    if (getRootItemPath().split("_").length === 1) {
+      path = ["0"];
+    }
+    rootObj = treeStore.getItem(tree, path);
+  }
   if (
-    !props.currentItem &&
+    rootObj.items &&
     rootObj.items.find(
       (item) => String(item.label).toLowerCase() === value.toLowerCase()
     )
@@ -74,6 +83,7 @@ function duplicateLabel(value: string) {
   }
   return true;
 }
+
 function duplicateTag(value: string) {
   if (
     addForm.value.tags.find(
@@ -90,8 +100,13 @@ function createNewTreeNode(): void {
   let newNode: IDraftNode = {
     label: addForm.value.label,
     icon: addForm.value.icon,
-    favorites: false,
   };
+  if (props.currentItem) {
+    newNode.favorites = props.currentItem.favorites;
+  } else {
+    newNode.favorites = false;
+  }
+
   if (isItem()) {
     modifyItem(newNode);
   } else {
@@ -141,7 +156,6 @@ function modifyItem(newNode: IDraftNode) {
   }
 
   if (props.isEdit) {
-    newNode.items = props.currentItem.items;
     editNode(newNode);
   } else {
     addTreeNode(newNode, "/item/");
@@ -151,14 +165,16 @@ function modifyItem(newNode: IDraftNode) {
 function modifySection(newNode: IDraftNode) {
   newNode = {
     ...newNode,
-    items: [],
   };
-
   if ($v.value.addForm.$errors.length) {
     return;
   }
 
   if (props.isEdit) {
+    if (props.currentItem.items) {
+      newNode.items = props.currentItem.items;
+    }
+
     editNode(newNode);
   } else {
     addTreeNode(newNode, "/section/");
@@ -181,7 +197,7 @@ function removeTag(tagForRemove: ITag): void {
 }
 
 function addIcon(e): void {
-  addForm.value.icon = URL.createObjectURL(e[0]);
+  addForm.value.icon = e[0];
 }
 function removeIcon(): void {
   addForm.value.icon = "";

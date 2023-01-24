@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { onMounted, ref } from "vue";
+import { computed, ref } from "vue";
 import RegistrationForm from "@/components/RegistrationForm.vue";
-import { getAuth, signOut } from "firebase/auth";
+import { useQuasar } from "quasar";
 import { useTreeNodes } from "@/store/treeNodes";
-import { INode } from "@/types/treeNodes";
 
 interface IEmits {
   (e: "toggle-navigation-drawer"): void;
@@ -11,7 +10,10 @@ interface IEmits {
 }
 const emit = defineEmits<IEmits>();
 
+const $q = useQuasar();
 const formVisibility = ref(false);
+const treeStore = useTreeNodes();
+const tree = computed(() => treeStore.getTree);
 const langs = [
   {
     label: "Ukrainian",
@@ -23,22 +25,31 @@ const langs = [
   },
 ];
 
-function toggleNavigationDrawer() {
-  emit("toggle-navigation-drawer");
-}
 function toggleTreeDrawer() {
+  if (!isAuth()) {
+    $q.notify("Please log in");
+    return;
+  }
+  if (!Object.keys(tree.value).length) {
+    $q.notify("Please wait for tree loading");
+    return;
+  }
+
   emit("toggle-tree-drawer");
 }
 
-function createAcc() {}
 function hideForm(): void {
   formVisibility.value = false;
 }
 function showForm(): void {
   formVisibility.value = true;
 }
-
-onMounted(() => {});
+function isAuth() {
+  if (sessionStorage.getItem("uid")) {
+    return true;
+  }
+  return false;
+}
 </script>
 
 <template>

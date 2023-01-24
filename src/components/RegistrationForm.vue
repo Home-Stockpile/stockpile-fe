@@ -16,6 +16,9 @@ import { GoogleAuthProvider } from "firebase/auth";
 import { INode } from "@/types/treeNodes";
 import useVuelidate from "@vuelidate/core";
 import { email as emailValidator, required } from "@vuelidate/validators";
+import { get, ref as fbRef, set } from "@firebase/database";
+import { fetchTree } from "@/functions/asyncActions/fetchTree";
+import { useQuasar } from "quasar";
 
 const currentEmail = ref();
 const email = ref("");
@@ -70,12 +73,12 @@ async function onLogin() {
       password.value
     );
 
-    localStorage.setItem("uid", resp.user.uid);
+    sessionStorage.setItem("uid", resp.user.uid);
   } catch (error) {
     onAsyncError(error);
   }
-  if (localStorage.getItem("uid")) {
-    await useTreeNodes().fetchTree();
+  if (sessionStorage.getItem("uid")) {
+    await fetchTree();
   }
 }
 async function onSignIn() {
@@ -89,29 +92,38 @@ async function onSignIn() {
       email.value,
       password.value
     );
-    localStorage.setItem("uid", resp.user.uid);
+    sessionStorage.setItem("uid", resp.user.uid);
   } catch (error) {
     onAsyncError(error);
   }
-  if (localStorage.getItem("uid")) {
-    await useTreeNodes().fetchTree();
+  if (sessionStorage.getItem("uid")) {
+    await fetchTree();
   }
 }
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
+    const db = getDatabase();
     currentEmail.value = user.email;
-    console.log(user.email);
-  } else {
-    console.log("User is signed out");
+    get(fbRef(db, sessionStorage.getItem("uid"))).then((snapshot) => {
+      if (snapshot.exists()) {
+      } else {
+        set(fbRef(db, sessionStorage.getItem("uid")), {
+          key: "0",
+          to: "/",
+        });
+      }
+    });
   }
 });
+
 async function signWithGoogle() {
+  const $q = useQuasar();
   try {
     const resp = await signInWithPopup(auth, provider);
     GoogleAuthProvider.credentialFromResult(resp);
   } catch (error) {
-    console.log(error.message);
+    $q.notify("You log out");
   }
 }
 
@@ -150,13 +162,13 @@ function onReset() {
 
 async function logout() {
   const auth = getAuth();
+  const $q = useQuasar();
   try {
     await signOut(auth);
-    localStorage.setItem("uid", "");
+    sessionStorage.setItem("uid", "");
     useTreeNodes().tree = {} as INode;
-    console.log("Sign-out successful");
   } catch (error) {
-    console.log("An error happened");
+    q.notify("An error happened");
   }
   hideDialog();
 }

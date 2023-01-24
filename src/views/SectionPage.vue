@@ -1,19 +1,21 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, onMounted, onUpdated, ref, watch } from "vue";
+import { computed, onBeforeMount, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useTreeNodes } from "@/store/treeNodes";
 import AddNodeDialog from "@/components/AddNodeDialog.vue";
 import { AddDialog, DialogTypes } from "@/types/dialog";
-
 import type { INode } from "@/types/treeNodes";
 import router from "@/router";
 import NodeBreadcrumbs from "@/components/NodeBreadcrumbs.vue";
+import { setTreeNodeIcon } from "@/functions/setTreeNodeIcon";
+import { useQuasar } from "quasar";
+import GearsLoader from "@/components/GearsLoader.vue";
 
 const route = useRoute();
-
 const treeStore = useTreeNodes();
+const $q = useQuasar();
+
 const tree = computed(() => treeStore.getTree);
-const defaultIcons = treeStore.getDefaultIcons;
 const dialogType = ref<AddDialog>(DialogTypes.section);
 const currentItem = ref<INode>();
 const columns = [
@@ -46,10 +48,22 @@ function showDialog(type: AddDialog, isEditDialog: boolean): void {
 function hideDialog(): void {
   dialogVisibility.value = false;
 }
+function removedNodeRedirect(rootItemPath: string[]) {
+  let rootItemTo = "";
+  if (currentItem.value.to.includes("section")) {
+    rootItemTo = "/section/" + rootItemPath.join("_");
+  } else {
+    rootItemTo = "/item/" + rootItemPath.join("_");
+  }
+  if (rootItemPath[0] === "0") {
+    rootItemTo = "/";
+  }
+  router.push(rootItemTo);
+}
 
-function removeNode(): void {
-  router.go(-1);
+function removeNode(removedNodeName): void {
   let rootItemPath: string[] = [];
+
   if (currentItem.value.key.includes("_")) {
     rootItemPath = currentItem.value.key
       .slice(0, currentItem.value.key.lastIndexOf("_"))
@@ -57,10 +71,35 @@ function removeNode(): void {
   } else {
     rootItemPath = ["0"];
   }
-
+  removedNodeRedirect(rootItemPath);
   treeStore.removeNode(rootItemPath, String(route.params.key));
+  $q.notify(`${removedNodeName} removed`);
+}
+function onRemove() {
+  const removedNodeName =
+    (currentItem.value.to.includes("section") ? "place " : "item ") +
+    currentItem.value.label;
+  $q.dialog({
+    title: "Confirm",
+    message: `Would you like to remove ${removedNodeName} ?`,
+    cancel: true,
+  }).onOk(() => {
+    removeNode(removedNodeName);
+  });
+}
+function toggleFavorites(key: string): void {
+  treeStore.toggleFavorites(key.split("_"));
+}
+function onRowClick(to) {
+  router.push(to);
 }
 
+onBeforeMount(() => {
+  currentItem.value = treeStore.getItem(
+    tree.value,
+    String(route.params.key).split("_")
+  );
+});
 watch(
   () => tree.value,
   () => {
@@ -70,19 +109,6 @@ watch(
     );
   }
 );
-onMounted(() => {
-function toggleFavorites(key: string): void {
-  treeStore.toggleFavorites(key.split("_"));
-}
-function onRowClick(to) {
-  router.push(to);
-}
-onBeforeMount(() => {
-  currentItem.value = treeStore.getItem(
-    tree.value,
-    String(route.params.key).split("_")
-  );
-});
 watch(
   () => route.params.key,
   () => {
@@ -102,83 +128,82 @@ watch(
     :is-edit="isEdit"
   />
 
-  <div class="q-pa-sm bg-white" v-if="currentItem">
-    <NodeBreadcrumbs />
-    <div class="row justify-between bg-white">
-      <div class="row items-center">
-        <q-img
-          :src="currentItem.icon || defaultIcons.itemIcon"
-          width="32px"
-          height="32px"
-          ratio="1"
-        />
-        <div class="q-ml-sm">{{ currentItem.label }}</div>
+  <div class="q-pa-sm bg-white">
+    <div v-if="currentItem">
+      <NodeBreadcrumbs />
+      <div class="row justify-between bg-white">
+        <div class="row items-center">
+          <q-img
+            :src="setTreeNodeIcon(currentItem)"
+            width="32px"
+            height="32px"
+            ratio="1"
+          />
+          <div class="q-ml-sm">{{ currentItem.label }}</div>
+        </div>
+
+        <div>
+          <q-btn
+            @click="() => showDialog(DialogTypes.item, false)"
+            :label="$t('sectionPage.addItem')"
+            class="q-mr-sm"
+            color="primary"
+          />
+          <q-btn
+            v-show="nestingLevel"
+            @click="() => showDialog(DialogTypes.section, false)"
+            :label="$t('sectionPage.addPlace')"
+            color="primary"
+            class="q-mr-sm"
+          />
+          <q-btn
+            @click="showDialog(DialogTypes.section, true)"
+            :label="$t('general.edit')"
+            color="primary"
+            class="q-mr-sm"
+          />
+
+          <q-btn @click="onRemove" :label="$t('general.delete')" color="red" />
+        </div>
       </div>
 
-      <div>
-        <q-btn
-          @click="() => showDialog(DialogTypes.item, false)"
-          :label="$t('sectionPage.addItem')"
-          class="q-mr-sm"
-          color="primary"
-        />
-        <q-btn
-          v-show="nestingLevel"
-          @click="() => showDialog(DialogTypes.section, false)"
-          :label="$t('sectionPage.addPlace')"
-          color="primary"
-          class="q-mr-sm"
-        />
-        <q-btn
-          @click="showDialog(DialogTypes.section, true)"
-          :label="$t('general.edit')"
-          color="primary"
-          class="q-mr-sm"
-        />
-
-        <q-btn @click="removeNode" :label="$t('general.delete')" color="red" />
-      </div>
+      <q-table
+        :rows="currentItem.items"
+        :columns="columns"
+        :hide-pagination="true"
+        :pagination="{ page: 1, rowsPerPage: 0 }"
+        v-if="currentItem.items"
+        row-key="key"
+        bordered
+        class="q-mt-sm no-box-shadow"
+      >
+        <template v-slot:body="props">
+          <q-tr
+            @click="() => onRowClick(props.row.to)"
+            :props="props"
+            class="text-subtitle1 cursor-pointer"
+          >
+            <q-td auto-width>
+              <q-img
+                :src="setTreeNodeIcon(props.row)"
+                width="30px"
+                height="30px"
+                ratio="1"
+              />
+            </q-td>
+            <q-td> {{ props.row.label }}</q-td>
+            <q-td auto-width>
+              <div
+                class="row items-center justify-center text-h5"
+                @click.stop.prevent="() => toggleFavorites(props.row.key)"
+              >
+                <q-icon v-if="props.row.favorites" name="favorite" />
+                <q-icon v-else name="favorite_border" /></div
+            ></q-td>
+          </q-tr>
+        </template>
+      </q-table>
     </div>
-
-    <q-table
-      :rows="currentItem.items"
-      :columns="columns"
-      :hide-pagination="true"
-      :pagination="{ page: 1, rowsPerPage: 0 }"
-      row-key="key"
-      bordered
-      class="q-mt-sm no-box-shadow"
-    >
-      <template v-slot:body="props">
-        <q-tr
-          @click="() => onRowClick(props.row.to)"
-          :props="props"
-          class="text-subtitle1 cursor-pointer"
-        >
-          <q-td auto-width>
-            <q-img
-              :src="
-                props.row.icon ||
-                (props.row.items
-                  ? defaultIcons.folderIcon
-                  : defaultIcons.itemIcon)
-              "
-              width="30px"
-              height="30px"
-              ratio="1"
-            />
-          </q-td>
-          <q-td> {{ props.row.label }}</q-td>
-          <q-td auto-width>
-            <div
-              class="row items-center justify-center text-h5"
-              @click.stop.prevent="() => toggleFavorites(props.row.key)"
-            >
-              <q-icon v-if="props.row.favorites" name="favorite" />
-              <q-icon v-else name="favorite_border" /></div
-          ></q-td>
-        </q-tr>
-      </template>
-    </q-table>
+    <div class="row justify-center" v-else><GearsLoader /></div>
   </div>
 </template>
