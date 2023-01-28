@@ -122,7 +122,9 @@ function isAuth() {
         </template>
       </q-table>
     </div>
-    <div class="row justify-center" v-else-if="!isAuth()">Please log in</div>
+    <div class="row justify-center" v-else-if="!isAuth()">
+      {{ $t("notifications.login") }}
+    </div>
     <div class="row justify-center" v-else><GearsLoader /></div>
   </div>
 </template>

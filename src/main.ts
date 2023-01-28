@@ -10,11 +10,11 @@ import App from "./App.vue";
 import { Dialog, Notify, Quasar } from "quasar";
 import "quasar/src/css/index.sass";
 
-import { messages } from "@/i18n";
+import { messages } from "./i18n";
 
 import { createI18n } from "vue-i18n";
 
-const i18n = createI18n({
+export const i18n = createI18n({
   locale: "en",
   globalInjection: true,
   messages,
@@ -28,5 +28,4 @@ app.use(Quasar, {
   plugins: { Dialog, Notify },
 });
 app.use(i18n);
-
 app.mount("#app");

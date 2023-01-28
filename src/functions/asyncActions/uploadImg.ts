@@ -1,15 +1,15 @@
 import { getDownloadURL, getStorage, ref, uploadBytes } from "firebase/storage";
-import { useQuasar } from "quasar";
+import { Notify } from "quasar";
+import { i18n } from "@/main";
 
 export async function uploadImg(icon, key) {
   const storage = getStorage();
-  const $q = useQuasar();
 
   const storageRef = ref(storage, sessionStorage.getItem("uid") + "/" + key);
   try {
     await uploadBytes(storageRef, icon);
   } catch (e) {
-    $q.notify("Img not uploaded");
+    Notify.create(i18n.global.t("notifications.imgNotUploaded"));
   }
 
   const url = await getDownloadURL(

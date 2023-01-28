@@ -1,24 +1,14 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { useTreeNodes } from "@/store/treeNodes";
-import {
-  getAuth,
-  signInWithPopup,
-  onAuthStateChanged,
-  signInWithEmailAndPassword,
-  signOut,
-  createUserWithEmailAndPassword,
-  sendPasswordResetEmail,
-} from "firebase/auth";
-import { getDatabase } from "firebase/database";
-
-import { GoogleAuthProvider } from "firebase/auth";
-import { INode } from "@/types/treeNodes";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
 import useVuelidate from "@vuelidate/core";
 import { email as emailValidator, required } from "@vuelidate/validators";
-import { get, ref as fbRef, set } from "@firebase/database";
-import { fetchTree } from "@/functions/asyncActions/fetchTree";
-import { useQuasar } from "quasar";
+import UserProfile from "@/components/UserProfile.vue";
+import { capitalizeFirstLetter } from "@/functions/capitalizeFirstLetter";
+import { signWithGoogle } from "@/functions/asyncActions/signWithGoogle";
+import { passwordReset } from "@/functions/asyncActions/passwordReset";
+import { onLogin } from "@/functions/asyncActions/onLogin";
+import { onSignIn } from "@/functions/asyncActions/onSignIn";
 
 const currentEmail = ref();
 const email = ref("");
@@ -26,7 +16,6 @@ const password = ref("");
 const emailError = ref("");
 const passwordError = ref("");
 const isSignIn = ref(false);
-const provider = new GoogleAuthProvider();
 
 const auth = getAuth();
 interface IEmits {
@@ -41,9 +30,6 @@ const rules = {
 
 const $v = useVuelidate(rules, { email, password });
 
-function capitalizeFirstLetter(string: string): string {
-  return string.charAt(0).toUpperCase() + string.slice(1);
-}
 function onAsyncError(error) {
   passwordError.value = "";
   emailError.value = "";
@@ -61,84 +47,13 @@ function onAsyncError(error) {
     emailError.value = newMessage;
   }
 }
-async function onLogin() {
-  $v.value.$validate();
-  if ($v.value.$error) {
-    return;
-  }
-  try {
-    const resp = await signInWithEmailAndPassword(
-      auth,
-      email.value,
-      password.value
-    );
-
-    sessionStorage.setItem("uid", resp.user.uid);
-  } catch (error) {
-    onAsyncError(error);
-  }
-  if (sessionStorage.getItem("uid")) {
-    await fetchTree();
-  }
-}
-async function onSignIn() {
-  $v.value.$validate();
-  if ($v.value.$error) {
-    return;
-  }
-  try {
-    const resp = await createUserWithEmailAndPassword(
-      auth,
-      email.value,
-      password.value
-    );
-    sessionStorage.setItem("uid", resp.user.uid);
-  } catch (error) {
-    onAsyncError(error);
-  }
-  if (sessionStorage.getItem("uid")) {
-    await fetchTree();
-  }
-}
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
-    const db = getDatabase();
     currentEmail.value = user.email;
-    get(fbRef(db, sessionStorage.getItem("uid"))).then((snapshot) => {
-      if (snapshot.exists()) {
-      } else {
-        set(fbRef(db, sessionStorage.getItem("uid")), {
-          key: "0",
-          to: "/",
-        });
-      }
-    });
   }
 });
 
-async function signWithGoogle() {
-  const $q = useQuasar();
-  try {
-    const resp = await signInWithPopup(auth, provider);
-    GoogleAuthProvider.credentialFromResult(resp);
-  } catch (error) {
-    $q.notify("You log out");
-  }
-}
-
-async function onPasswordReset() {
-  $v.value.$validate();
-  if ($v.value.$error) {
-    return;
-  }
-  try {
-    await sendPasswordResetEmail(auth, email.value);
-    alert("Email for reset password successfully send");
-  } catch (error) {
-    alert(error.message);
-  }
-}
 function toggleFormType(e) {
   onReset();
 
@@ -159,19 +74,6 @@ function onReset() {
   emailError.value = "";
   $v.value.$reset();
 }
-
-async function logout() {
-  const auth = getAuth();
-  const $q = useQuasar();
-  try {
-    await signOut(auth);
-    sessionStorage.setItem("uid", "");
-    useTreeNodes().tree = {} as INode;
-  } catch (error) {
-    q.notify("An error happened");
-  }
-  hideDialog();
-}
 </script>
 <template>
   <q-dialog @hide="hideDialog" :model-value="true">
@@ -183,7 +85,7 @@ async function logout() {
           value="login"
           class="q-pr-xs cursor-pointer"
         >
-          Login
+          {{ $t("authorization.login") }}
         </data>
         <div>|</div>
         <data
@@ -191,15 +93,10 @@ async function logout() {
           :class="isSignIn && 'underline'"
           value="signIn"
           class="q-pl-xs cursor-pointer"
-        >
-          Sign in
+          >{{ $t("authorization.signIn") }}
         </data>
       </div>
-      <q-form
-        @submit="onLogin"
-        @reset="onReset"
-        class="q-gutter-md q-mt-sm bg-white"
-      >
+      <q-form @reset="onReset" class="q-gutter-md q-mt-sm bg-white">
         <q-input
           @blur="$v.email.$touch()"
           v-model="email"
@@ -207,7 +104,7 @@ async function logout() {
           filled
           type="email"
           autocomplete="username"
-          label="Your email *"
+          :label="$t('authorization.yourEmail') + '*'"
           lazy-rules
         >
           <template v-slot:error>
@@ -224,7 +121,7 @@ async function logout() {
           type="password"
           autocomplete="current-password"
           v-model="password"
-          label="Your password *"
+          :label="$t('authorization.yourPassword') + '*'"
           lazy-rules
         >
           <template v-slot:error>
@@ -238,33 +135,37 @@ async function logout() {
         <div
           v-if="passwordError"
           class="underline cursor-pointer"
-          @click="onPasswordReset"
+          @click="() => passwordReset(email)"
         >
-          Reset password
+          {{ $t("authorization.resetPassword") }}
         </div>
         <div>
           <q-btn
             v-if="isSignIn"
-            @click="onSignIn"
-            label="Sign in"
+            @click="() => onSignIn($v, email, password, onAsyncError)"
+            :label="$t('authorization.signIn')"
             color="primary"
           />
           <q-btn
-            v-if="!isSignIn"
-            @click="onLogin"
-            label="Login"
+            v-else
+            @click="() => onLogin($v, email, password, onAsyncError)"
+            :label="$t('authorization.login')"
             color="primary"
           />
           <q-btn
             @click="onReset"
-            label="Reset"
+            :label="$t('authorization.reset')"
             color="primary"
             flat
             class="q-ml-sm"
           />
         </div>
         <div>
-          <div>{{ (isSignIn ? "Sign " : "Log") + "in with:" }}</div>
+          <div>
+            {{
+              isSignIn ? $t("authorization.signIn") : $t("authorization.login")
+            }}
+          </div>
           <q-img
             class="cursor-pointer"
             @click="signWithGoogle"
@@ -275,17 +176,7 @@ async function logout() {
         </div>
       </q-form>
     </q-card>
-    <q-card v-if="currentEmail" class="q-pa-md">
-      <div>Your email:</div>
-      <div>{{ currentEmail }}</div>
-      <q-btn
-        class="q-mt-sm"
-        flat
-        icon="logout"
-        label="Logout"
-        @click="logout"
-      />
-    </q-card>
+    <UserProfile v-else :hideDialog="hideDialog" :currentEmail="currentEmail" />
   </q-dialog>
 </template>
 <style scoped>

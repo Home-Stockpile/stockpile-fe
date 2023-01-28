@@ -1,13 +1,13 @@
 import { deleteObject, getStorage, ref } from "firebase/storage";
-import { useQuasar } from "quasar";
+import { i18n } from "@/main";
+import { Notify } from "quasar";
 
 export async function removeImg(key) {
   const storage = getStorage();
-  const $q = useQuasar();
   const storageRef = ref(storage, sessionStorage.getItem("uid") + "/" + key);
   try {
     await deleteObject(storageRef);
   } catch (e) {
-    $q.notify("Img not deleted");
+    Notify.create(i18n.global.t("notifications.imgNotDeleted"));
   }
 }

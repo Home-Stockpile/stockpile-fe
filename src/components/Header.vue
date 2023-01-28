@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import RegistrationForm from "@/components/RegistrationForm.vue";
+import RegistrationForm from "@/components/AuthForm.vue";
 import { useQuasar } from "quasar";
 import { useTreeNodes } from "@/store/treeNodes";
+import {i18n} from "@/main";
 
 interface IEmits {
   (e: "toggle-navigation-drawer"): void;
@@ -27,11 +28,11 @@ const langs = [
 
 function toggleTreeDrawer() {
   if (!isAuth()) {
-    $q.notify("Please log in");
+    $q.notify(i18n.global.t("notifications.login"));
     return;
   }
   if (!Object.keys(tree.value).length) {
-    $q.notify("Please wait for tree loading");
+    $q.notify(i18n.global.t("notifications.waitTree"));
     return;
   }
 
@@ -57,10 +58,10 @@ function isAuth() {
     <q-toolbar>
       <q-btn dense flat round icon="menu" @click="toggleTreeDrawer" />
 
-      <q-toolbar-title> Home stockpile </q-toolbar-title>
+  <q-toolbar-title>   <RouterLink to="/" > Home stockpile</RouterLink> </q-toolbar-title>
       <div class="row">
         <q-select
-          label="Select Language"
+          :label="$t('general.selectLang')"
           v-model="$i18n.locale"
           map-options
           emit-value
