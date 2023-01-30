@@ -13,7 +13,7 @@ export async function uploadImg(icon, key) {
   }
 
   const url = await getDownloadURL(
-    ref(storage, "7JxWctE8RHewDNmpkQypBx8rO3E3/" + key)
+    ref(storage, sessionStorage.getItem("uid") + "/" + key)
   );
 
   return url;

@@ -7,12 +7,10 @@ import { AddDialog, DialogTypes } from "@/types/dialog";
 import router from "@/router";
 import NodeBreadcrumbs from "@/components/NodeBreadcrumbs.vue";
 import { setTreeNodeIcon } from "@/functions/setTreeNodeIcon";
-import { useQuasar } from "quasar";
 import GearsLoader from "@/components/GearsLoader.vue";
 
 const route = useRoute();
 const treeStore = useTreeNodes();
-const $q = useQuasar();
 
 const tree = computed(() => treeStore.getTree);
 const dialogType = ref<AddDialog>(DialogTypes.root);

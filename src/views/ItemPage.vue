@@ -12,6 +12,7 @@ import useVuelidate from "@vuelidate/core";
 import { setTreeNodeIcon } from "@/functions/setTreeNodeIcon";
 import { useQuasar } from "quasar";
 import GearsLoader from "@/components/GearsLoader.vue";
+import { capitalizeFirstLetter } from "@/functions/capitalizeFirstLetter";
 
 const $q = useQuasar();
 const route = useRoute();
@@ -92,7 +93,7 @@ function onRemove() {
     message: `Would you like to remove ${removedNodeName} ?`,
     cancel: true,
   }).onOk(() => {
-    removeNode(removedNodeName);
+    removeNode(capitalizeFirstLetter(removedNodeName));
   });
 }
 </script>

@@ -52,7 +52,7 @@ export const useTreeNodes = defineStore("treeNodes", {
         key: nextNodeKey(lastKey),
         to: routerPath + nextNodeKey(lastKey),
       };
-
+      newNode.icon = item.icon;
       if (item.icon) {
         const resp = await uploadImg(item.icon, nextNodeKey(lastKey));
         newNode.icon = resp;
@@ -122,9 +122,6 @@ export const useTreeNodes = defineStore("treeNodes", {
     getDefaultIcons: (state) => state.defaultTreeIcons,
     getItem: () =>
       function getItem(item: INode, path: string[]): INode | null {
-        if (!item) {
-          return null;
-        }
         if (path[0] === "0") {
           return item;
         }
@@ -133,9 +130,7 @@ export const useTreeNodes = defineStore("treeNodes", {
         }
         const keyFirstPart = path.slice(0, 2).join("_");
         const itemKey = path.shift();
-        if (!item.items) {
-          return null;
-        }
+
         const findItem = item.items.find((i) => i.key === itemKey) || null;
         if (!path.length) {
           return findItem;
