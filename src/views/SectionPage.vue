@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeMount, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useTreeNodes } from "@/store/treeNodes";
 import AddNodeDialog from "@/components/AddNodeDialog.vue";
@@ -98,11 +98,13 @@ function onRowClick(to) {
   router.push(to);
 }
 
-onBeforeMount(() => {
-  currentItem.value = treeStore.getItem(
-    tree.value,
-    String(route.params.key).split("_")
-  );
+onMounted(() => {
+  if (Object.keys(tree.value).length) {
+    currentItem.value = treeStore.getItem(
+      tree.value,
+      String(route.params.key).split("_")
+    );
+  }
 });
 watch(
   () => tree.value,

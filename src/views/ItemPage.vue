@@ -7,7 +7,7 @@ import { DialogTypes } from "@/types/dialog";
 import AddNodeDialog from "@/components/AddNodeDialog.vue";
 import router from "@/router";
 import NodeBreadcrumbs from "@/components/NodeBreadcrumbs.vue";
-import { maxValue } from "@vuelidate/validators";
+import { maxValue, minValue } from "@vuelidate/validators";
 import useVuelidate from "@vuelidate/core";
 import { setTreeNodeIcon } from "@/functions/setTreeNodeIcon";
 import { useQuasar } from "quasar";
@@ -24,7 +24,7 @@ const dialogVisibility = ref(false);
 const newQuantity = ref(0);
 
 const rules = {
-  newQuantity: { maxValue: maxValue(100) },
+  newQuantity: { maxValue: maxValue(100), minValue: minValue(0) },
 };
 
 const $v = useVuelidate(rules, { newQuantity });
@@ -53,12 +53,14 @@ function removeNode(removedNodeName): void {
   $q.notify(`${removedNodeName} removed`);
 }
 onMounted(() => {
-  currentItem.value = treeStore.getItem(
-    tree.value,
-    String(route.params.key).split("_")
-  );
-  if (currentItem.value) {
-    newQuantity.value = currentItem.value.quantity;
+  if (Object.keys(tree.value).length) {
+    currentItem.value = treeStore.getItem(
+      tree.value,
+      String(route.params.key).split("_")
+    );
+    if (currentItem.value) {
+      newQuantity.value = currentItem.value.quantity;
+    }
   }
 });
 watch(

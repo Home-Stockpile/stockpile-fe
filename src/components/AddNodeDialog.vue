@@ -6,7 +6,13 @@ import { AddDialog, DialogTypes } from "@/types/dialog";
 import { IDraftNode, INode } from "@/types/treeNodes";
 import { ITag } from "@/types/tags";
 import useVuelidate from "@vuelidate/core";
-import { helpers, maxLength, maxValue, required } from "@vuelidate/validators";
+import {
+  helpers,
+  maxLength,
+  maxValue,
+  minValue,
+  required,
+} from "@vuelidate/validators";
 
 interface IProps {
   currentItem?: INode;
@@ -44,7 +50,7 @@ const rules = {
         duplicateLabel
       ),
     },
-    quantity: { maxValue: maxValue(100) },
+    quantity: { maxValue: maxValue(100), minValue: minValue(0) },
     description: {
       maxLength: maxLength(255),
     },
@@ -65,8 +71,7 @@ function duplicateLabel(value: string) {
   if (!Object.keys(rootObj).length) {
     return true;
   }
-
-  if (props.currentItem) {
+  if (!props.currentItem) {
     let path = String(getRootItemPath()).split("_");
     if (getRootItemPath().split("_").length === 1) {
       path = ["0"];
@@ -221,7 +226,7 @@ onMounted(() => {
         <h6 v-if="isItem()">{{ $t("addDialog.itemLabel") }}</h6>
         <h6 v-else>{{ $t("addDialog.itemLabel") }}</h6>
         <q-input
-          v-model="addForm.label"
+          v-model.trim="addForm.label"
           @blur="$v.addForm.label.$touch"
           :error="$v.addForm.label.$error"
           placeholder="Name"
@@ -236,7 +241,7 @@ onMounted(() => {
         <q-card-section>
           <h6>{{ $t("general.quantity") }}</h6>
           <q-input
-            v-model="addForm.quantity"
+            v-model.trim="addForm.quantity"
             :error="$v.addForm.quantity.$error"
             @blur="$v.addForm.quantity.$touch"
             type="number"
@@ -251,7 +256,7 @@ onMounted(() => {
           <h6>{{ $t("general.tags") }}</h6>
           <div class="column">
             <q-input
-              v-model="newTagName"
+              v-model.trim="newTagName"
               :error="!!$v.newTagName.$error"
               bottom-slots
               placeholder="Add your tags"
@@ -281,7 +286,7 @@ onMounted(() => {
           <h6>{{ $t("general.description") }}</h6>
 
           <q-input
-            v-model="addForm.description"
+            v-model.trim="addForm.description"
             :error="!!$v.addForm.description.$error"
             @blur="$v.addForm.description.$touch"
             bottom-slots

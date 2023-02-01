@@ -121,12 +121,13 @@ export const useTreeNodes = defineStore("treeNodes", {
     getDefaultIcons: (state) => state.defaultTreeIcons,
     getItem: () =>
       function getItem(item: INode, path: string[]): INode | null {
-        if (path[0] === "0") {
-          return item;
-        }
         if (!item || !Object.keys(item).length) {
           return null;
         }
+        if (path[0] === "0" || !item.items) {
+          return item;
+        }
+
         const keyFirstPart = path.slice(0, 2).join("_");
         const itemKey = path.shift();
 
