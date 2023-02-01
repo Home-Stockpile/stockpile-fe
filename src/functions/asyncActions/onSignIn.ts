@@ -4,16 +4,11 @@ import { fetchTree } from "@/functions/asyncActions/fetchTree";
 export async function onSignIn($v, email, password, onAsyncError) {
   const auth = getAuth();
 
-  $v.value.$validate();
-  if ($v.value.$error) {
+  if ($v.$error) {
     return;
   }
   try {
-    const resp = await createUserWithEmailAndPassword(
-      auth,
-      email.value,
-      password.value
-    );
+    const resp = await createUserWithEmailAndPassword(auth, email, password);
     sessionStorage.setItem("uid", resp.user.uid);
   } catch (error) {
     onAsyncError(error);

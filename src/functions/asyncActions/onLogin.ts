@@ -2,7 +2,6 @@ import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
 import { fetchTree } from "@/functions/asyncActions/fetchTree";
 export async function onLogin($v, email, password, onAsyncError) {
   const auth = getAuth();
-  $v.$validate();
   if ($v.$error) {
     return;
   }

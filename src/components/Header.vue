@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, onMounted, ref} from "vue";
+import { computed, onMounted, ref } from "vue";
 import AuthForm from "@/components/AuthForm.vue";
 import { useQuasar } from "quasar";
 import { useTreeNodes } from "@/store/treeNodes";
@@ -51,11 +51,11 @@ function isAuth() {
   }
   return false;
 }
-onMounted(()=>{
-  if(!isAuth()){
-    formVisibility.value=true;
+onMounted(() => {
+  if (!isAuth()) {
+    formVisibility.value = true;
   }
-})
+});
 </script>
 
 <template>

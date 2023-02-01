@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {computed, ref} from "vue";
+import { computed, ref } from "vue";
 import { useRoute } from "vue-router";
 import { useTreeNodes } from "@/store/treeNodes";
 import AddNodeDialog from "@/components/AddNodeDialog.vue";
@@ -123,6 +123,8 @@ function isAuth() {
     <div class="row justify-center" v-else-if="!isAuth()">
       <h3>{{ $t("notifications.login") }}</h3>
     </div>
-    <div class="row justify-center" v-if="treeStore.treeLoading"><GearsLoader /></div>
+    <div class="row justify-center" v-if="treeStore.treeLoading">
+      <GearsLoader />
+    </div>
   </div>
 </template>

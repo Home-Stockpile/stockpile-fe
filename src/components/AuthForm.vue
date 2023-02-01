@@ -143,6 +143,7 @@ function onReset() {
         <div class="row justify-center q-mt-none">
           <q-btn
             v-if="isSignIn"
+            @blur="$v.$touch()"
             @click="() => onSignIn($v, email, password, onAsyncError)"
             :label="$t('authorization.signIn')"
             color="primary"
@@ -152,6 +153,7 @@ function onReset() {
           />
           <q-btn
             v-else
+            @blur="$v.$touch()"
             @click="() => onLogin($v, email, password, onAsyncError)"
             :label="$t('authorization.login')"
             color="primary"
