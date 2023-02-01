@@ -6,7 +6,6 @@ import { setLoggedIn } from "@/functions/asyncActions/setLoggedIn";
 import { fetchTree } from "@/functions/asyncActions/fetchTree";
 import { get, ref as fbRef, set } from "@firebase/database";
 import { getDatabase } from "firebase/database";
-import { useQuasar } from "quasar";
 
 const auth = getAuth();
 const db = getDatabase();

@@ -1,6 +1,5 @@
 import { createUserWithEmailAndPassword, getAuth } from "firebase/auth";
 import { fetchTree } from "@/functions/asyncActions/fetchTree";
-import { useQuasar } from "quasar";
 
 export async function onSignIn($v, email, password, onAsyncError) {
   const auth = getAuth();

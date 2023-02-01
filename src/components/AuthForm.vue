@@ -116,12 +116,13 @@ function onReset() {
 
         <q-input
           @blur="$v.password.$touch()"
-          filled
+          v-model="password"
           :error="!!($v.password.$error || passwordError)"
+          :label="$t('authorization.yourPassword') + '*'"
           type="password"
           autocomplete="current-password"
-          v-model="password"
-          :label="$t('authorization.yourPassword') + '*'"
+          class="q-mt-xs"
+          filled
           lazy-rules
         >
           <template v-slot:error>
@@ -139,33 +140,28 @@ function onReset() {
         >
           {{ $t("authorization.resetPassword") }}
         </div>
-        <div>
+        <div class="row justify-center q-mt-none">
           <q-btn
             v-if="isSignIn"
             @click="() => onSignIn($v, email, password, onAsyncError)"
             :label="$t('authorization.signIn')"
             color="primary"
+            size="md"
+            rounded
+            class="full-width"
           />
           <q-btn
             v-else
             @click="() => onLogin($v, email, password, onAsyncError)"
             :label="$t('authorization.login')"
             color="primary"
-          />
-          <q-btn
-            @click="onReset"
-            :label="$t('authorization.reset')"
-            color="primary"
-            flat
-            class="q-ml-sm"
+            size="md"
+            rounded
+            class="full-width"
           />
         </div>
-        <div>
-          <div>
-            {{
-              isSignIn ? $t("authorization.signIn") : $t("authorization.login")
-            }}
-          </div>
+        <hr />
+        <div class="row justify-center">
           <q-img
             class="cursor-pointer"
             @click="signWithGoogle"
@@ -185,5 +181,22 @@ function onReset() {
 }
 .login-card {
   min-width: 20rem;
+}
+
+hr {
+  margin-top: 2rem;
+  border: none;
+  border-top: 3px solid #333;
+  color: #333;
+  overflow: visible;
+  text-align: center;
+  height: 5px;
+}
+hr:after {
+  background: #fff;
+  content: "OR";
+  padding: 0 4px;
+  position: relative;
+  top: -13px;
 }
 </style>

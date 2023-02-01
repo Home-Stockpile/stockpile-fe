@@ -13,6 +13,7 @@ import { setTreeNodeIcon } from "@/functions/setTreeNodeIcon";
 import { useQuasar } from "quasar";
 import GearsLoader from "@/components/GearsLoader.vue";
 import { capitalizeFirstLetter } from "@/functions/capitalizeFirstLetter";
+import { i18n } from "@/main";
 
 const $q = useQuasar();
 const route = useRoute();
@@ -86,11 +87,14 @@ watch(
 
 function onRemove() {
   const removedNodeName =
-    (currentItem.value.to.includes("section") ? "place " : "item ") +
-    currentItem.value.label;
+    (currentItem.value.to.includes("section")
+      ? i18n.global.t("notifications.place")
+      : i18n.global.t("notifications.item")) + currentItem.value.label;
   $q.dialog({
-    title: "Confirm",
-    message: `Would you like to remove ${removedNodeName} ?`,
+    title: i18n.global.t("notifications.confirm"),
+    message: `${i18n.global.t(
+      "notifications.removeConfirm"
+    )} ${removedNodeName} ?`,
     cancel: true,
   }).onOk(() => {
     removeNode(capitalizeFirstLetter(removedNodeName));
@@ -107,7 +111,7 @@ function onRemove() {
     :is-edit="true"
   />
 
-  <div class="q-pa-sm bg-white">
+  <div class="q-pa-sm bg-white full-height">
     <div v-if="currentItem">
       <NodeBreadcrumbs />
       <div>

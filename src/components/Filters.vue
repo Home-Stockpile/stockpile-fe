@@ -102,7 +102,7 @@ watch(selectedFavTag, (value) => {
     overlay
   >
     <q-card v-if="isFilter" class="q-pa-md full-height">
-      <q-card-section>
+      <q-card-section class="q-pa-none">
         <h6>{{ $t("filters.tags") }}</h6>
         <q-select
           filled
@@ -144,7 +144,7 @@ watch(selectedFavTag, (value) => {
         </q-select>
       </q-card-section>
 
-      <q-card-section>
+      <q-card-section class="q-pa-none">
         <h6>{{ $t("filters.favoriteTags") }}</h6>
         <q-select
           filled
@@ -186,14 +186,16 @@ watch(selectedFavTag, (value) => {
         </q-select>
       </q-card-section>
 
-      <q-card-actions class="justify-end">
+      <q-card-actions class="justify-end q-pa-none">
         <q-btn
           :label="$t('general.resetButton')"
+          class="q-mt-xs"
           icon="close"
           @click="onResetFilters"
         />
         <q-btn
           :label="$t('general.applyButton')"
+          class="q-mt-xs"
           icon="check"
           @click="onApplyFilters"
         />

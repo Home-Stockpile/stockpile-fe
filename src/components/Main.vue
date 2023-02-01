@@ -27,7 +27,7 @@ watch(
     <Header @toggle-tree-drawer="toggleTreeDrawer" />
 
     <TreeDrawer :treeDrawerOpen="treeDrawerOpen" />
-    <q-page-container>
+    <q-page-container class="q-pa-xs-none window-height">
       <router-view />
     </q-page-container>
   </q-layout>

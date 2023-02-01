@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import RegistrationForm from "@/components/AuthForm.vue";
+import {computed, onMounted, ref} from "vue";
+import AuthForm from "@/components/AuthForm.vue";
 import { useQuasar } from "quasar";
 import { useTreeNodes } from "@/store/treeNodes";
-import {i18n} from "@/main";
+import { i18n } from "@/main";
 
 interface IEmits {
   (e: "toggle-navigation-drawer"): void;
@@ -51,6 +51,11 @@ function isAuth() {
   }
   return false;
 }
+onMounted(()=>{
+  if(!isAuth()){
+    formVisibility.value=true;
+  }
+})
 </script>
 
 <template>
@@ -58,7 +63,9 @@ function isAuth() {
     <q-toolbar>
       <q-btn dense flat round icon="menu" @click="toggleTreeDrawer" />
 
-  <q-toolbar-title>   <RouterLink to="/" > Home stockpile</RouterLink> </q-toolbar-title>
+      <q-toolbar-title>
+        <RouterLink to="/"> Home stockpile</RouterLink>
+      </q-toolbar-title>
       <div class="row">
         <q-select
           :label="$t('general.selectLang')"
@@ -75,7 +82,7 @@ function isAuth() {
         <q-btn dense flat icon="login" @click="showForm" />
       </div>
     </q-toolbar>
-    <RegistrationForm v-if="formVisibility" @hide-form="hideForm" />
+    <AuthForm v-if="formVisibility" @hide-form="hideForm" />
   </q-header>
 </template>
 

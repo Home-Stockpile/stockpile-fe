@@ -303,6 +303,7 @@ onMounted(() => {
           @removed="removeIcon"
           accept=".jpg, image/*"
           :max-file-size="1000000"
+          class="uploader"
         />
       </q-card-section>
       <q-card-actions class="justify-end q-mt-lg">
@@ -327,5 +328,8 @@ onMounted(() => {
 }
 :deep(.q-field__native) {
   padding: 0;
+}
+.uploader {
+  width: auto;
 }
 </style>

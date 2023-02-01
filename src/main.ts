@@ -4,6 +4,7 @@ import router from "./router";
 
 import "./assets/reset.css";
 import "./assets/base.css";
+import "quasar/dist/quasar.addon.css";
 import "@quasar/extras/material-icons/material-icons.css";
 
 import App from "./App.vue";

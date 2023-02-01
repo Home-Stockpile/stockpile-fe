@@ -18,14 +18,13 @@ export const useTreeNodes = defineStore("treeNodes", {
         itemIcon:
           "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ec/SCP_Foundation_%28emblem%29.svg/1200px-SCP_Foundation_%28emblem%29.svg.png",
       },
-      treeLoading: true,
+      treeLoading: false,
       tree: {} as INode,
     };
   },
 
   actions: {
     setTree(tree) {
-      this.treeLoading = false;
       this.tree = tree;
     },
     setTreeLoading(state) {

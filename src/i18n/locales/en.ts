@@ -9,7 +9,7 @@ export default {
     applyButton: "Apply",
     delete: "Delete",
     edit: "Edit",
-    selectLang:"Select Language"
+    selectLang: "Select Language",
   },
 
   addDialog: {
@@ -50,8 +50,11 @@ export default {
     imgNotUploaded: "Img not uploaded",
     logout: "You logged out",
     error: "An error happened",
-    login:"Please log in",
-    waitTree:'Please wait for tree loading',
-
+    login: "Please log in to continue",
+    waitTree: "Please wait for tree loading",
+    confirm: "Confirm",
+    removeConfirm: "Would you like to remove",
+    place: "place ",
+    item: "item ",
   },
 };

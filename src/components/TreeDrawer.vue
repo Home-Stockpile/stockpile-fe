@@ -72,6 +72,12 @@ function changeFilters(value: INode[], tag): void {
   }
   hideFilter();
 }
+function cutString(string: string, number: number): string {
+  if (string.length < number) {
+    return string;
+  }
+  return string.slice(0, number) + "...";
+}
 </script>
 
 <template>
@@ -163,7 +169,7 @@ function changeFilters(value: INode[], tag): void {
               />
 
               <div class="q-ml-sm">
-                {{ item.node.label }}
+                {{ cutString(item.node.label, 20) }}
               </div>
             </div>
             <div

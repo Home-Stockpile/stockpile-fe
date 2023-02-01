@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import {computed, ref} from "vue";
 import { useRoute } from "vue-router";
 import { useTreeNodes } from "@/store/treeNodes";
 import AddNodeDialog from "@/components/AddNodeDialog.vue";
@@ -63,7 +63,7 @@ function isAuth() {
     :is-edit="false"
   />
 
-  <div class="q-pa-sm bg-white">
+  <div class="q-pa-sm bg-white full-height">
     <div v-if="tree.key">
       <NodeBreadcrumbs />
       <div class="row justify-between bg-white">
@@ -121,8 +121,8 @@ function isAuth() {
       </q-table>
     </div>
     <div class="row justify-center" v-else-if="!isAuth()">
-      {{ $t("notifications.login") }}
+      <h3>{{ $t("notifications.login") }}</h3>
     </div>
-    <div class="row justify-center" v-else><GearsLoader /></div>
+    <div class="row justify-center" v-if="treeStore.treeLoading"><GearsLoader /></div>
   </div>
 </template>
