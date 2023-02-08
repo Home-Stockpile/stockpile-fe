@@ -160,7 +160,7 @@ watch(
             @click="() => showDialog(DialogTypes.section, false)"
             :label="$t('sectionPage.addPlace')"
             color="primary"
-            class="q-mr-sm q-mt-sm-xs"
+            class="q-mr-sm"
           />
           <q-btn
             @click="showDialog(DialogTypes.section, true)"
@@ -179,11 +179,12 @@ watch(
       </div>
 
       <q-table
+        v-if="currentItem.items"
         :rows="currentItem.items"
         :columns="columns"
         :hide-pagination="true"
         :pagination="{ page: 1, rowsPerPage: 0 }"
-        v-if="currentItem.items"
+        :loading="!currentItem.items.length"
         row-key="key"
         bordered
         class="q-mt-sm no-box-shadow"
