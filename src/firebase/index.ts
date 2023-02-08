@@ -2,7 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCiWPDgDWlomMuHiYCqUYpQfFO3h8zXtxM",
+  apiKey: import.meta.env.VITE_API_KEY,
   authDomain: "home-stockpile-be.firebaseapp.com",
   databaseURL: "https://home-stockpile-be-default-rtdb.firebaseio.com",
   projectId: "home-stockpile-be",
