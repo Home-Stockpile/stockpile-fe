@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import { INode } from "@/types/treeNodes";
 import { useTreeNodes } from "@/store/treeNodes";
@@ -7,12 +7,12 @@ import { useTreeNodes } from "@/store/treeNodes";
 const route = useRoute();
 const breadcrumbs = ref<INode[]>([]);
 const treeStore = useTreeNodes();
-const tree = treeStore.getTree;
+const tree = computed(() => treeStore.getTree);
 
 onMounted(() => {
   if (route.params.key) {
     breadcrumbs.value = treeStore.getBreadcrumbs(
-      tree.items,
+      tree.value.items,
       String(route.params.key).split("_"),
       []
     );
@@ -22,7 +22,17 @@ watch(
   () => route.params.key,
   () => {
     breadcrumbs.value = treeStore.getBreadcrumbs(
-      tree.items,
+      tree.value.items,
+      String(route.params.key).split("_"),
+      []
+    );
+  }
+);
+watch(
+  () => tree.value,
+  () => {
+    breadcrumbs.value = treeStore.getBreadcrumbs(
+      tree.value.items,
       String(route.params.key).split("_"),
       []
     );

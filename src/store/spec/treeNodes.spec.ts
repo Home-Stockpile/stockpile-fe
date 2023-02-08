@@ -73,6 +73,14 @@ describe("treeNodes", () => {
           treeNode.getBreadcrumbs(expectedTree.items, ["1", "1", "1"], [])
         ).toMatchObject(expectedBreadcrumbs);
       });
+
+      test("getBreadcrumbs return empty arr when tree is not defined", () => {
+        const treeNode = useTreeNodes();
+
+        expect(
+          treeNode.getBreadcrumbs(null, ["1", "1", "1"], [])
+        ).toMatchObject([]);
+      });
     });
 
     describe("getTags", () => {
@@ -92,6 +100,20 @@ describe("treeNodes", () => {
   });
 
   describe("actions", () => {
+    describe("set tree", () => {
+      test("sets tree after fetch", () => {
+        const treeNode = useTreeNodes();
+        treeNode.setTree(expectedTree);
+        expect(treeNode.tree).toMatchObject(expectedTree);
+      });
+    });
+    describe("set tree loading", () => {
+      test("shows when loading in progress", () => {
+        const treeNode = useTreeNodes();
+        treeNode.setTreeLoading(false);
+        expect(treeNode.treeLoading).toBe(false);
+      });
+    });
     describe("addTreeNode", () => {
       test("addTreeNode adds new node in the tree node if in node already exists node", () => {
         const treeNode = useTreeNodes();
@@ -136,6 +158,24 @@ describe("treeNodes", () => {
         treeNode.removeNode(["0"], "1");
         treeNode.removeNode(["0"], "2");
         treeNode.removeNode(["0"], "3");
+        expect(treeNode.tree).toMatchObject(emptyTree);
+        treeNode.addTreeNode(draftItem, ["0"], "/section/");
+        expect(treeNode.tree).toMatchObject(treeAfterAddInRootNode);
+      });
+      test("addTreeNode in empty root", () => {
+        const treeNode = useTreeNodes();
+        const draftItem = {
+          label: "Section",
+          items: [],
+        };
+        const emptyTree = {
+          key: "0",
+          label: "root",
+          to: "/",
+          icon: "pi pi-home",
+        };
+        treeNode.setTree(emptyTree);
+
         expect(treeNode.tree).toMatchObject(emptyTree);
         treeNode.addTreeNode(draftItem, ["0"], "/section/");
         expect(treeNode.tree).toMatchObject(treeAfterAddInRootNode);

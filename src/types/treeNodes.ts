@@ -1,10 +1,13 @@
 import { ITag } from "@/types/tags";
+import WebSocket_2 from "vite";
+import Data = WebSocket_2.Data;
 
 export interface INode {
   label: string;
   key: string;
   to: string;
-  icon?: string;
+  icon?: Data | string;
+
   items?: INode[];
   description?: string;
   favorites?: boolean;

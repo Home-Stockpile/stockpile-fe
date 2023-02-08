@@ -6,6 +6,7 @@ import { INode } from "@/types/treeNodes";
 import Filters from "@/components/Filters.vue";
 import { DialogTypes } from "@/types/dialog";
 import { storeToRefs } from "pinia";
+import { setTreeNodeIcon } from "@/functions/setTreeNodeIcon";
 interface IProps {
   treeDrawerOpen: boolean;
 }
@@ -14,7 +15,6 @@ const props = defineProps<IProps>();
 const treeStore = storeToRefs(useTreeNodes());
 const tree = treeStore.getTree;
 const favorites = treeStore.getFavorites;
-const defaultIcons = treeStore.getDefaultIcons;
 
 const addNodeVisibility = ref(false);
 const searchQuery = ref("");
@@ -25,6 +25,9 @@ const tagForSearch = ref("");
 const isFilter = ref(false);
 
 const currentTree = computed(() => {
+  if (!tree.value) {
+    return [];
+  }
   if (tagForSearch.value) {
     return searchResults.value;
   }
@@ -32,7 +35,7 @@ const currentTree = computed(() => {
     return favorites.value;
   }
 
-  return tree.value.items;
+  return tree.value.items || [];
 });
 
 function hideDialog(): void {
@@ -69,15 +72,11 @@ function changeFilters(value: INode[], tag): void {
   }
   hideFilter();
 }
-function setTreeNodeIcon(item): string {
-  if (item.node.icon) {
-    return item.node.icon;
+function cutString(string: string, number: number): string {
+  if (string.length < number) {
+    return string;
   }
-  if (item.node.items) {
-    return defaultIcons.value.folderIcon;
-  }
-
-  return defaultIcons.value.itemIcon;
+  return string.slice(0, number) + "...";
 }
 </script>
 
@@ -143,10 +142,11 @@ function setTreeNodeIcon(item): string {
         />
       </div>
     </div>
-    <div v-show="tagForSearch">
-      {{ $t("treeDrawer.filter") }} {{ tagForSearch }}
-    </div>
+
     <q-scroll-area class="q-pa-sm">
+      <div v-show="tagForSearch">
+        {{ $t("treeDrawer.filter") }} {{ tagForSearch }}
+      </div>
       <q-tree
         :nodes="currentTree"
         :filter="searchQuery"
@@ -162,14 +162,14 @@ function setTreeNodeIcon(item): string {
           >
             <div class="row items-center">
               <q-img
-                :src="setTreeNodeIcon(item)"
+                :src="setTreeNodeIcon(item.node)"
                 width="30px"
                 height="30px"
                 ratio="1"
               />
 
               <div class="q-ml-sm">
-                {{ item.node.label }}
+                {{ cutString(item.node.label, 20) }}
               </div>
             </div>
             <div

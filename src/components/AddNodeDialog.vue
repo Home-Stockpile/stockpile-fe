@@ -6,7 +6,13 @@ import { AddDialog, DialogTypes } from "@/types/dialog";
 import { IDraftNode, INode } from "@/types/treeNodes";
 import { ITag } from "@/types/tags";
 import useVuelidate from "@vuelidate/core";
-import { helpers, maxLength, maxValue, required } from "@vuelidate/validators";
+import {
+  helpers,
+  maxLength,
+  maxValue,
+  minValue,
+  required,
+} from "@vuelidate/validators";
 
 interface IProps {
   currentItem?: INode;
@@ -31,6 +37,7 @@ const addForm = ref<IDraftNode>({
   quantity: 0,
   icon: "",
   tags: [],
+  items: [],
 });
 
 const rules = {
@@ -43,7 +50,7 @@ const rules = {
         duplicateLabel
       ),
     },
-    quantity: { maxValue: maxValue(100) },
+    quantity: { maxValue: maxValue(100), minValue: minValue(0) },
     description: {
       maxLength: maxLength(255),
     },
@@ -57,11 +64,22 @@ const rules = {
     ),
   },
 };
+const $v = useVuelidate(rules, { addForm, newTagName });
 
 function duplicateLabel(value: string) {
-  const rootObj = treeStore.getItem(tree, getRootItemPath().split("_"));
+  let rootObj = treeStore.getItem(tree, getRootItemPath().split("_"));
+  if (!Object.keys(rootObj).length) {
+    return true;
+  }
+  if (!props.currentItem) {
+    let path = String(getRootItemPath()).split("_");
+    if (getRootItemPath().split("_").length === 1) {
+      path = ["0"];
+    }
+    rootObj = treeStore.getItem(tree, path);
+  }
   if (
-    !props.currentItem &&
+    rootObj.items &&
     rootObj.items.find(
       (item) => String(item.label).toLowerCase() === value.toLowerCase()
     )
@@ -70,6 +88,7 @@ function duplicateLabel(value: string) {
   }
   return true;
 }
+
 function duplicateTag(value: string) {
   if (
     addForm.value.tags.find(
@@ -80,15 +99,19 @@ function duplicateTag(value: string) {
   }
   return true;
 }
-const $v = useVuelidate(rules, { addForm, newTagName });
 
 function createNewTreeNode(): void {
   $v.value.addForm.$touch();
   let newNode: IDraftNode = {
     label: addForm.value.label,
     icon: addForm.value.icon,
-    favorites: false,
   };
+  if (props.currentItem) {
+    newNode.favorites = props.currentItem.favorites;
+  } else {
+    newNode.favorites = false;
+  }
+
   if (isItem()) {
     modifyItem(newNode);
   } else {
@@ -138,7 +161,6 @@ function modifyItem(newNode: IDraftNode) {
   }
 
   if (props.isEdit) {
-    newNode.items = props.currentItem.items;
     editNode(newNode);
   } else {
     addTreeNode(newNode, "/item/");
@@ -148,14 +170,16 @@ function modifyItem(newNode: IDraftNode) {
 function modifySection(newNode: IDraftNode) {
   newNode = {
     ...newNode,
-    items: [],
   };
-
   if ($v.value.addForm.$errors.length) {
     return;
   }
 
   if (props.isEdit) {
+    if (props.currentItem.items) {
+      newNode.items = props.currentItem.items;
+    }
+
     editNode(newNode);
   } else {
     addTreeNode(newNode, "/section/");
@@ -178,7 +202,7 @@ function removeTag(tagForRemove: ITag): void {
 }
 
 function addIcon(e): void {
-  addForm.value.icon = URL.createObjectURL(e[0]);
+  addForm.value.icon = e[0];
 }
 function removeIcon(): void {
   addForm.value.icon = "";
@@ -202,7 +226,7 @@ onMounted(() => {
         <h6 v-if="isItem()">{{ $t("addDialog.itemLabel") }}</h6>
         <h6 v-else>{{ $t("addDialog.itemLabel") }}</h6>
         <q-input
-          v-model="addForm.label"
+          v-model.trim="addForm.label"
           @blur="$v.addForm.label.$touch"
           :error="$v.addForm.label.$error"
           placeholder="Name"
@@ -217,7 +241,7 @@ onMounted(() => {
         <q-card-section>
           <h6>{{ $t("general.quantity") }}</h6>
           <q-input
-            v-model="addForm.quantity"
+            v-model.trim="addForm.quantity"
             :error="$v.addForm.quantity.$error"
             @blur="$v.addForm.quantity.$touch"
             type="number"
@@ -232,7 +256,7 @@ onMounted(() => {
           <h6>{{ $t("general.tags") }}</h6>
           <div class="column">
             <q-input
-              v-model="newTagName"
+              v-model.trim="newTagName"
               :error="!!$v.newTagName.$error"
               bottom-slots
               placeholder="Add your tags"
@@ -262,7 +286,7 @@ onMounted(() => {
           <h6>{{ $t("general.description") }}</h6>
 
           <q-input
-            v-model="addForm.description"
+            v-model.trim="addForm.description"
             :error="!!$v.addForm.description.$error"
             @blur="$v.addForm.description.$touch"
             bottom-slots
@@ -284,6 +308,7 @@ onMounted(() => {
           @removed="removeIcon"
           accept=".jpg, image/*"
           :max-file-size="1000000"
+          class="uploader"
         />
       </q-card-section>
       <q-card-actions class="justify-end q-mt-lg">
@@ -308,5 +333,8 @@ onMounted(() => {
 }
 :deep(.q-field__native) {
   padding: 0;
+}
+.uploader {
+  width: auto;
 }
 </style>

@@ -9,6 +9,7 @@ export default {
     applyButton: "Застосувати",
     delete: "Видалити",
     edit: "Редагувати",
+    selectLang: "Оберіть мову",
   },
 
   addDialog: {
@@ -30,5 +31,30 @@ export default {
   filters: {
     tags: "Фільтрувати за тегом:",
     favoriteTags: "Фільтрувати за улюбленим тегом:",
+    selectTag: "Оберіть тег",
+  },
+  authorization: {
+    login: "Ввійти",
+    signIn: "Зареєструватись",
+    logout: "Вийти",
+    reset: "Cкинути",
+    yourEmail: "Ваша почта:",
+    yourPassword: "Ваш пароль:",
+    resetPassword: "Скинути пароль",
+  },
+  notifications: {
+    noTree: "Дерево ще не завантажкно",
+    treeNotUpdated: "Дерево не оновлено",
+    reset: "Лист для відновлення пароля надіслано на Вашу пошту",
+    imgNotDeleted: "Картинку не видалено",
+    imgNotUploaded: "Картинка не завантажена",
+    logout: "Ви вишли з аккаунта",
+    error: "Трапилась помилка",
+    login: "Будь-ласка ввійдіть",
+    waitTree: "Будь-ласка зачекайте завантаження дерева",
+    confirm: "Підтвердіть",
+    removeConfirm: "Чи бажаєте видалити",
+    place: "місце ",
+    item: "предмет ",
   },
 };

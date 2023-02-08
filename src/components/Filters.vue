@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { computed, onUpdated, ref, watch } from "vue";
 import { INode } from "@/types/treeNodes";
 import { useTreeNodes } from "@/store/treeNodes";
 interface IProps {
@@ -13,9 +13,9 @@ const props = defineProps<IProps>();
 const emit = defineEmits<IEmits>();
 
 const treeStore = useTreeNodes();
-const tree = treeStore.getTree;
+const tree = computed(() => treeStore.getTree);
 
-const allTags = treeStore.getTags;
+const allTags = computed(() => treeStore.getTags);
 const favoriteTags = treeStore.getFavoriteTags;
 const tagError = ref("");
 const selectedFavTag = ref("");
@@ -42,7 +42,11 @@ function filterByTag(
 function onApplyFilters(): void {
   let tagForSearch = selectedTag.value || selectedFavTag.value;
   if (tagForSearch) {
-    emit("change-filters", filterByTag(tree, tagForSearch, []), tagForSearch);
+    emit(
+      "change-filters",
+      filterByTag(tree.value, tagForSearch, []),
+      tagForSearch
+    );
   } else {
     tagError.value = "Choose favorite or regular tag";
   }
@@ -66,27 +70,26 @@ function setPrevFilterValue(): void {
   }
 }
 function toggleFavorites(name, value) {
-  treeStore.toggleTagFavorites(tree, {
+  treeStore.toggleTagFavorites(tree.value, {
     name: name,
     favorite: value,
   });
 }
-
+onUpdated(() => {
+  setPrevFilterValue();
+});
 watch(selectedTag, (value) => {
   if (value) {
     selectedFavTag.value = "";
   }
   tagError.value = "";
 });
+
 watch(selectedFavTag, (value) => {
   if (value) {
     selectedTag.value = "";
   }
   tagError.value = "";
-});
-
-onMounted(() => {
-  setPrevFilterValue();
 });
 </script>
 
@@ -94,12 +97,12 @@ onMounted(() => {
   <q-drawer
     :model-value="isFilter"
     @hide="onHideFilters"
-    side="left"
     behavior="mobile"
+    side="left"
     overlay
   >
-    <q-card class="q-pa-md full-height">
-      <q-card-section>
+    <q-card v-if="isFilter" class="q-pa-md full-height">
+      <q-card-section class="q-pa-none">
         <h6>{{ $t("filters.tags") }}</h6>
         <q-select
           filled
@@ -107,7 +110,7 @@ onMounted(() => {
           :options="allTags"
           :error="!!tagError"
           name="name"
-          label="Select tag"
+          :label="$t('filters.selectTag')"
           color="teal"
           option-value="name"
           option-label="name"
@@ -141,7 +144,7 @@ onMounted(() => {
         </q-select>
       </q-card-section>
 
-      <q-card-section>
+      <q-card-section class="q-pa-none">
         <h6>{{ $t("filters.favoriteTags") }}</h6>
         <q-select
           filled
@@ -149,7 +152,7 @@ onMounted(() => {
           :options="favoriteTags"
           :error="!!tagError"
           name="name"
-          label="Select tag"
+          :label="$t('filters.selectTag')"
           color="teal"
           option-value="name"
           option-label="name"
@@ -183,14 +186,16 @@ onMounted(() => {
         </q-select>
       </q-card-section>
 
-      <q-card-actions class="justify-end">
+      <q-card-actions class="justify-end q-pa-none">
         <q-btn
           :label="$t('general.resetButton')"
+          class="q-mt-xs"
           icon="close"
           @click="onResetFilters"
         />
         <q-btn
           :label="$t('general.applyButton')"
+          class="q-mt-xs"
           icon="check"
           @click="onApplyFilters"
         />
