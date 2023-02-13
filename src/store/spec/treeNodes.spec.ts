@@ -17,6 +17,7 @@ import {
   expectedTags,
   expectedTree,
 } from "@/store/spec/utils/getters";
+import { expectedShoppingList } from "@/store/spec/utils/getters/expectedShoppingList";
 
 describe("treeNodes", () => {
   beforeEach(() => {
@@ -80,6 +81,14 @@ describe("treeNodes", () => {
         expect(
           treeNode.getBreadcrumbs(null, ["1", "1", "1"], [])
         ).toMatchObject([]);
+      });
+    });
+
+    describe("getShoppingList", () => {
+      test("getShoppingList returns array of items in shopping list", () => {
+        const treeNode = useTreeNodes();
+
+        expect(treeNode.getShoppingList).toMatchObject(expectedShoppingList);
       });
     });
 

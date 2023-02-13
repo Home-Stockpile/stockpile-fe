@@ -22,12 +22,15 @@ const tree = computed(() => treeStore.getTree);
 const currentItem = ref<INode>();
 const dialogVisibility = ref(false);
 const newQuantity = ref(0);
+const requiredQuantity = ref(0);
+const requiredQuantityDialogVisibility = ref(false);
 
 const rules = {
   newQuantity: { maxValue: maxValue(100), minValue: minValue(0) },
+  requiredQuantity: { maxValue: maxValue(100), minValue: minValue(0) },
 };
 
-const $v = useVuelidate(rules, { newQuantity });
+const $v = useVuelidate(rules, { newQuantity, requiredQuantity });
 
 function showDialog(): void {
   dialogVisibility.value = true;
@@ -44,14 +47,34 @@ function changeQuantity(): void {
   }
 }
 
+function changeRequiredQuantity(): void {
+  $v.value.requiredQuantity.$touch();
+  if (!$v.value.requiredQuantity.$errors.length) {
+    treeStore.editNode({
+      ...currentItem.value,
+      requiredQuantity: requiredQuantity.value,
+    });
+  }
+  requiredQuantityDialogVisibility.value = false;
+  $q.notify(
+    `${currentItem.value.label + i18n.global.t("itemPage.addedToShoppingList")}`
+  );
+}
+
+function resetRequiredQuantity() {
+  requiredQuantity.value = 0;
+  requiredQuantityDialogVisibility.value = false;
+}
+
 function removeNode(removedNodeName): void {
   router.go(-1);
   const rootItemPath = currentItem.value.key
     .slice(0, currentItem.value.key.lastIndexOf("_"))
     .split("_");
   treeStore.removeNode(rootItemPath, String(route.params.key));
-  $q.notify(`${removedNodeName} removed`);
+  $q.notify(`${removedNodeName + i18n.global.t("notifications.removed")} `);
 }
+
 onMounted(() => {
   if (Object.keys(tree.value).length) {
     currentItem.value = treeStore.getItem(
@@ -112,7 +135,39 @@ function onRemove() {
     :dialog-type="DialogTypes.item"
     :is-edit="true"
   />
+  <q-dialog
+    @hide="() => (requiredQuantityDialogVisibility = false)"
+    :model-value="requiredQuantityDialogVisibility"
+  >
+    <q-card>
+      <q-card-section>
+        <h6>{{ $t("addDialog.requiredQuantity") }}</h6>
+        <q-input
+          v-model.trim="requiredQuantity"
+          :error="$v.requiredQuantity.$error"
+          @blur="$v.requiredQuantity.$touch"
+          type="number"
+        >
+          <template v-slot:error>
+            {{ $v.requiredQuantity.$errors[0].$message }}
+          </template>
+        </q-input>
 
+        <q-card-actions class="justify-end q-mt-lg">
+          <q-btn
+            :label="$t('general.cancelButton')"
+            icon="close"
+            @click="resetRequiredQuantity"
+          />
+          <q-btn
+            :label="$t('general.saveButton')"
+            icon="check"
+            @click="changeRequiredQuantity"
+          />
+        </q-card-actions>
+      </q-card-section>
+    </q-card>
+  </q-dialog>
   <div class="q-pa-sm bg-white full-height">
     <div v-if="currentItem">
       <NodeBreadcrumbs />
@@ -128,7 +183,7 @@ function onRemove() {
             {{ tag.name }}
           </q-chip>
         </span>
-        <span v-else>No tags</span>
+        <span v-else>{{ $t("itemPage.noTags") }}</span>
       </div>
 
       <div class="row items-center justify-between">
@@ -161,10 +216,16 @@ function onRemove() {
         <div v-if="currentItem.description" class="q-mt-sm">
           {{ currentItem.description }}
         </div>
-        <div v-else>No description</div>
+        <div v-else>{{ $t("itemPage.noDescription") }}</div>
       </div>
 
       <div class="row justify-end">
+        <q-btn
+          @click="() => (requiredQuantityDialogVisibility = true)"
+          :label="$t('itemPage.addToShoppingList')"
+          color="primary"
+          class="q-mr-sm"
+        />
         <q-btn
           @click="showDialog"
           :label="$t('general.edit')"

@@ -16,11 +16,18 @@ export default {
     itemLabel: "Введіть назву предмета:  ",
     placeLabel: "Введіть назву місця:  ",
     icon: "Завантажте вашу іконку:",
+    requiredQuantity: "Бажана кількість",
   },
 
   sectionPage: {
     addItem: "Додати предмет",
     addPlace: "Додати місце",
+  },
+  itemPage: {
+    addToShoppingList: "Додати в список покупок",
+    addedToShoppingList: "додано в список покупок",
+    noTags: "Немає тегів",
+    noDescription: "Немає опису",
   },
   treeDrawer: {
     all: "Всі",
@@ -56,5 +63,6 @@ export default {
     removeConfirm: "Чи бажаєте видалити",
     place: "місце ",
     item: "предмет ",
+    removed: "видалено",
   },
 };
