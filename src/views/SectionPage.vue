@@ -210,8 +210,9 @@ watch(
                 @click.stop.prevent="() => toggleFavorites(props.row.key)"
               >
                 <q-icon v-if="props.row.favorites" name="favorite" />
-                <q-icon v-else name="favorite_border" /></div
-            ></q-td>
+                <q-icon v-else name="favorite_border" />
+              </div>
+            </q-td>
           </q-tr>
         </template>
       </q-table>

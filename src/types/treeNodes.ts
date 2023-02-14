@@ -13,6 +13,7 @@ export interface INode {
   favorites?: boolean;
   tags?: ITag[];
   quantity?: number;
+  requiredQuantity?: number;
 }
 
 export interface IDraftNode extends Omit<INode, "key" | "to"> {}

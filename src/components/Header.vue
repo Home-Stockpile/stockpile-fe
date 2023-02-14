@@ -64,7 +64,10 @@ onMounted(() => {
       <q-btn dense flat round icon="menu" @click="toggleTreeDrawer" />
 
       <q-toolbar-title>
-        <RouterLink to="/"> Home stockpile</RouterLink>
+        <RouterLink to="/">Stockpile</RouterLink>
+        <RouterLink class="q-ml-md" to="/shoppingList">
+          Shopping list
+        </RouterLink>
       </q-toolbar-title>
       <div class="row">
         <q-select

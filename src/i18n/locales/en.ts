@@ -16,11 +16,18 @@ export default {
     itemLabel: "Enter name of item: ",
     placeLabel: "Enter name of place: ",
     icon: "Download your icon:",
+    requiredQuantity: "Required quantity",
   },
 
   sectionPage: {
     addItem: "Add item",
     addPlace: "Add place",
+  },
+  itemPage: {
+    addToShoppingList: "Add to a shopping list",
+    addedToShoppingList: "added to a shopping list",
+    noTags: "No tags",
+    noDescription: "No description",
   },
   treeDrawer: {
     all: "All",
@@ -56,5 +63,6 @@ export default {
     removeConfirm: "Would you like to remove",
     place: "place ",
     item: "item ",
+    removed: "removed",
   },
 };

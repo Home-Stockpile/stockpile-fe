@@ -4,6 +4,7 @@ import DefaultPage from "../views/DefaultPage.vue";
 import SectionPage from "../views/SectionPage.vue";
 import { useTreeNodes } from "@/store/treeNodes";
 import { computed, watch } from "vue";
+import ShoppingListPage from "@/views/ShoppingListPage.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -14,14 +15,26 @@ const router = createRouter({
       component: DefaultPage,
       meta: {
         requiresAuth: false,
+        requiresNode: true,
       },
     },
+    {
+      path: "/shoppingList",
+      name: "shoppingList",
+      component: ShoppingListPage,
+      meta: {
+        requiresAuth: true,
+        requiresNode: false,
+      },
+    },
+
     {
       path: "/item/:key",
       name: "itemPage",
       component: ItemPage,
       meta: {
         requiresAuth: true,
+        requiresNode: true,
       },
     },
     {
@@ -30,6 +43,7 @@ const router = createRouter({
       component: SectionPage,
       meta: {
         requiresAuth: true,
+        requiresNode: true,
       },
     },
     {
@@ -38,31 +52,38 @@ const router = createRouter({
       component: DefaultPage,
       meta: {
         requiresAuth: false,
+        requiresNode: false,
       },
     },
   ],
 });
 router.beforeEach((to) => {
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
+  const requiresNode = to.matched.some((record) => record.meta.requiresNode);
+
+  if (!requiresAuth) {
+    return;
+  }
+  if (!requiresNode) {
+    return;
+  }
+
   const treeStore = useTreeNodes();
   const currentItem = computed(() =>
     treeStore.getItem(treeStore.tree, String(to.params.key).split("_"))
   );
-  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
 
-  if (requiresAuth) {
-    if (!sessionStorage.getItem("uid")) {
-      router.push("/");
-    }
-    watch(
-      () => treeStore.treeLoading,
-      () => {
-        if (!currentItem.value) {
-          router.push("/");
-        }
-      }
-    );
-  } else {
+  if (!sessionStorage.getItem("uid")) {
+    router.push("/");
     return;
   }
+  watch(
+    () => treeStore.treeLoading,
+    () => {
+      if (!currentItem.value) {
+        router.push("/");
+      }
+    }
+  );
 });
 export default router;

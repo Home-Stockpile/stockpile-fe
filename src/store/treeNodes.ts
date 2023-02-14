@@ -118,6 +118,23 @@ export const useTreeNodes = defineStore("treeNodes", {
 
   getters: {
     getTree: (state) => state.tree,
+    getShoppingList: (state) => {
+      function getShoppingList(element: INode, searchResult: INode[]): INode[] {
+        if (element.requiredQuantity) {
+          searchResult.push(element);
+        }
+        if (element.items && element.items.length) {
+          let treeNode = [];
+          element.items.forEach(
+            (item) =>
+              (treeNode = getShoppingList(item, searchResult) || searchResult)
+          );
+          return treeNode;
+        }
+        return searchResult;
+      }
+      return getShoppingList(state.tree, []);
+    },
     getDefaultIcons: (state) => state.defaultTreeIcons,
     getItem: () =>
       function getItem(item: INode, path: string[]): INode | null {
