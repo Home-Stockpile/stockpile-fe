@@ -9,7 +9,7 @@ export function setTreeNodeIcon(item: INode): string {
   if (item.icon) {
     return item.icon;
   }
-  if (item.to.includes("section")) {
+  if (item.to && item.to.includes("section")) {
     return defaultIcons.folderIcon;
   }
 

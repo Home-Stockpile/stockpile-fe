@@ -1,35 +1,12 @@
 rules_version = '2';
 service cloud.firestore {
    match /databases/{database}/documents {
-     match /users/{user} {
-        function isSignedIn() {
-          return request.auth != null;
-        }
+     match /users/{node=**} {
+         allow read,write: if true;
+         // here will be more secure code when i start add sharing ability
 
-        function getRole(rsc) {
-          return rsc.data.roles[request.auth.uid];
-        }
-
-        function isOneOfRoles(rsc, array) {
-          return isSignedIn() && (getRole(rsc) in array);
-        }
-
-        function isValidNewStory() {
-          return request.resource.data.roles[request.auth.uid] == 'owner';
-        }
-
-
-        // Split writing into creation, deletion, and updating. Only an
-        // owner can create or delete a story but a writer can update
-        // story content.
-        allow create: if isValidNewStory();
-        allow delete: if isOneOfRoles(resource, ['owner']);
-        allow update: if isOneOfRoles(resource, ['owner'])
-                      || (isOneOfRoles(resource, ['writer']) );
-        allow read: if isOneOfRoles(resource, ['owner', 'writer', 'commenter', 'reader']);
 
      }
-       // here will be more secure code when i start add sharing ability
        match /storages/{node=**} {
            allow read,write: if true;
        }
