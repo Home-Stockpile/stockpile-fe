@@ -5,6 +5,7 @@ import SectionPage from "../views/SectionPage.vue";
 import { useTreeNodes } from "@/store/treeNodes";
 import { computed, watch } from "vue";
 import ShoppingListPage from "@/views/ShoppingListPage.vue";
+import SharedNodes from "@/components/SharedNodes.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -27,7 +28,15 @@ const router = createRouter({
         requiresNode: false,
       },
     },
-
+    {
+      path: "/sharedNodes",
+      name: "sharedNodes",
+      component: SharedNodes,
+      meta: {
+        requiresAuth: true,
+        requiresNode: false,
+      },
+    },
     {
       path: "/item/:key",
       name: "itemPage",

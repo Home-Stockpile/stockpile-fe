@@ -180,8 +180,9 @@ function cutString(string: string, number: number): string {
               <q-icon v-else name="favorite_border" />
             </div>
           </RouterLink>
-        </template> </q-tree
-    ></q-scroll-area>
+        </template>
+      </q-tree>
+    </q-scroll-area>
   </q-drawer>
 </template>
 

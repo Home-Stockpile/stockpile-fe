@@ -68,6 +68,9 @@ onMounted(() => {
         <RouterLink class="q-ml-md" to="/shoppingList">
           Shopping list
         </RouterLink>
+        <RouterLink class="q-ml-md" to="/sharedNodes">
+          Shared Nodes
+        </RouterLink>
       </q-toolbar-title>
       <div class="row">
         <q-select
