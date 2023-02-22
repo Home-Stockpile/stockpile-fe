@@ -110,22 +110,7 @@ function onRowClick(item) {
 }
 
 async function shareNode() {
-  const db = getFirestore();
-
-  const docRef = doc(
-    db,
-    "sharedNodes",
-    sessionStorage.getItem("uid"),
-    "lists",
-    currentItem.value.key
-  );
-  await setDoc(docRef, {
-    ...currentItem.value,
-    roles: {
-      [sessionStorage.getItem("uid")]: "owner",
-      "7JxWctE8RHewDNmpkQypBx8rO3E3": "reader",
-    },
-  });
+  //adding share ability will be in next task
 }
 
 onMounted(() => {
