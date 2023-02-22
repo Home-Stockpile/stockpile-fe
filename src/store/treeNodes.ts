@@ -20,12 +20,16 @@ export const useTreeNodes = defineStore("treeNodes", {
       },
       treeLoading: false,
       tree: {} as INode,
+      sharedTrees: [],
     };
   },
 
   actions: {
     setTree(tree) {
       this.tree = tree;
+    },
+    setSharedTrees(tree) {
+      this.sharedTrees = [...this.sharedTrees, tree];
     },
     setTreeLoading(state) {
       this.treeLoading = state;
@@ -118,6 +122,7 @@ export const useTreeNodes = defineStore("treeNodes", {
 
   getters: {
     getTree: (state) => state.tree,
+    getSharedTrees: (state) => state.sharedTrees,
     getShoppingList: (state) => {
       function getShoppingList(element: INode, searchResult: INode[]): INode[] {
         if (element.requiredQuantity) {

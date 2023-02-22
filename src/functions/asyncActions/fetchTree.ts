@@ -1,20 +1,38 @@
-import { getDatabase, onValue } from "firebase/database";
-import { ref as fbRef } from "@firebase/database";
+import { collection, getDocs, getFirestore } from "firebase/firestore";
+
 import { useTreeNodes } from "@/store/treeNodes";
-import { i18n } from "@/main";
-import { Notify } from "quasar";
+import { createRecord } from "@/functions/asyncActions/createRecord";
+import { createDataTree } from "@/functions/createDataTree";
 
 export async function fetchTree() {
-  const db = getDatabase();
+  const db = getFirestore();
   const treeStore = useTreeNodes();
+  const colRef = collection(
+    db,
+    "storages",
+    sessionStorage.getItem("uid"),
+    "tree"
+  );
+  await createRecord();
+  const list = [];
+  let rootObj = {};
+  try {
+    const querySnapshot = await getDocs(colRef);
+    querySnapshot.docs.forEach((item) => {
+      if (item.data().key !== "0") {
+        list.push(item.data());
+      } else {
+        rootObj = item.data();
+      }
+    });
+  } catch (e) {
+    console.log(e);
+  }
 
   treeStore.setTreeLoading(true);
-  onValue(fbRef(db, sessionStorage.getItem("uid")), (snapshot) => {
-    if (!snapshot.val()) {
-      Notify.create(i18n.global.t("notifications.noTree"));
-    } else {
-      treeStore.setTree(snapshot.val());
-    }
-    treeStore.setTreeLoading(false);
+  treeStore.setTree({
+    ...rootObj,
+    items: createDataTree(list),
   });
+  treeStore.setTreeLoading(false);
 }

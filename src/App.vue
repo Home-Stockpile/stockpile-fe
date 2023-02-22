@@ -1,35 +1,21 @@
 <script setup lang="ts">
 import Main from "@/components/Main.vue";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
-import { onMounted } from "vue";
 import { setLoggedIn } from "@/functions/asyncActions/setLoggedIn";
 import { fetchTree } from "@/functions/asyncActions/fetchTree";
-import { get, ref as fbRef, set } from "@firebase/database";
-import { getDatabase } from "firebase/database";
+import { getSharedNodes } from "@/functions/asyncActions/getSharedNodes";
+import { INode } from "@/types/treeNodes";
+import { useTreeNodes } from "@/store/treeNodes";
 
 const auth = getAuth();
-const db = getDatabase();
 
 onAuthStateChanged(auth, (user) => {
   if (user) {
     setLoggedIn(user.uid);
     if (sessionStorage.getItem("uid")) {
       fetchTree();
+      getSharedNodes();
     }
-
-    get(fbRef(db, sessionStorage.getItem("uid"))).then((snapshot) => {
-      if (!snapshot.exists()) {
-        set(fbRef(db, sessionStorage.getItem("uid")), {
-          key: "0",
-          to: "/",
-        });
-      }
-    });
-  }
-});
-onMounted(() => {
-  if (sessionStorage.getItem("uid")) {
-    fetchTree();
   }
 });
 </script>
@@ -37,3 +23,19 @@ onMounted(() => {
 <template>
   <Main />
 </template>
+<!--export function getCurrentNode(owner, tree, key): INode {-->
+<!--const treeStore = useTreeNodes();-->
+<!--if (!Object.keys(tree.value).length) {-->
+<!--return;-->
+<!--}-->
+
+<!--if (owner === sessionStorage.getItem("uid") && tree.value.key) {-->
+<!--return treeStore.getItem(tree.value, String(key).split("_"));-->
+<!--}-->
+<!--console.log();-->
+
+<!--return treeStore.getItem(-->
+<!--treeStore.getSharedTrees.find((item) => item.key === owner),-->
+<!--String(key).split("_")-->
+<!--);-->
+<!--}-->

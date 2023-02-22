@@ -5,6 +5,7 @@ import SectionPage from "../views/SectionPage.vue";
 import { useTreeNodes } from "@/store/treeNodes";
 import { computed, watch } from "vue";
 import ShoppingListPage from "@/views/ShoppingListPage.vue";
+import SharedNodes from "@/components/SharedNodes.vue";
 
 const router = createRouter({
   history: createWebHistory(),
@@ -12,11 +13,7 @@ const router = createRouter({
     {
       path: "/",
       name: "home",
-      component: DefaultPage,
-      meta: {
-        requiresAuth: false,
-        requiresNode: true,
-      },
+      redirect: `/section/0?owner=${sessionStorage.getItem("uid")}`,
     },
     {
       path: "/shoppingList",
@@ -27,7 +24,15 @@ const router = createRouter({
         requiresNode: false,
       },
     },
-
+    {
+      path: "/sharedNodes",
+      name: "sharedNodes",
+      component: SharedNodes,
+      meta: {
+        requiresAuth: true,
+        requiresNode: false,
+      },
+    },
     {
       path: "/item/:key",
       name: "itemPage",
@@ -49,7 +54,7 @@ const router = createRouter({
     {
       path: "/:pathMatch(.*)*",
       name: "NotFound",
-      component: DefaultPage,
+      redirect: `/section/0?owner=${sessionStorage.getItem("uid")}`,
       meta: {
         requiresAuth: false,
         requiresNode: false,
@@ -67,7 +72,6 @@ router.beforeEach((to) => {
   if (!requiresNode) {
     return;
   }
-
   const treeStore = useTreeNodes();
   const currentItem = computed(() =>
     treeStore.getItem(treeStore.tree, String(to.params.key).split("_"))

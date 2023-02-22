@@ -1,0 +1,14 @@
+rules_version = '2';
+service cloud.firestore {
+   match /databases/{database}/documents {
+     match /users/{node=**} {
+         allow read,write: if true;
+         // here will be more secure code when i start add sharing ability
+
+
+     }
+       match /storages/{node=**} {
+           allow read,write: if true;
+       }
+   }
+}

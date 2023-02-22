@@ -11,12 +11,16 @@ import { setTreeNodeIcon } from "@/functions/setTreeNodeIcon";
 import { useQuasar } from "quasar";
 import GearsLoader from "@/components/GearsLoader.vue";
 import { i18n } from "@/main";
+import { doc, getFirestore, setDoc } from "firebase/firestore";
+import { getOwner } from "@/functions/getOwner";
+import { getCurrentNode } from "@/functions/getCurrentNode";
 
 const route = useRoute();
 const treeStore = useTreeNodes();
 const $q = useQuasar();
 
 const tree = computed(() => treeStore.getTree);
+const sharedTrees = computed(() => treeStore.getSharedTrees);
 const dialogType = ref<AddDialog>(DialogTypes.section);
 const currentItem = ref<INode>();
 const columns = [
@@ -94,34 +98,94 @@ function onRemove() {
 function toggleFavorites(key: string): void {
   treeStore.toggleFavorites(key.split("_"));
 }
-function onRowClick(to) {
-  router.push(to);
+function onRowClick(item) {
+  let query = { owner: sessionStorage.getItem("uid") };
+  if (Object.keys(item.roles).length > 1) {
+    query = { owner: getOwner(item.roles) };
+  }
+  router.push({
+    path: item.to,
+    query,
+  });
+}
+
+async function shareNode() {
+  const db = getFirestore();
+
+  const docRef = doc(
+    db,
+    "sharedNodes",
+    sessionStorage.getItem("uid"),
+    "lists",
+    currentItem.value.key
+  );
+  await setDoc(docRef, {
+    ...currentItem.value,
+    roles: {
+      [sessionStorage.getItem("uid")]: "owner",
+      "7JxWctE8RHewDNmpkQypBx8rO3E3": "reader",
+    },
+  });
 }
 
 onMounted(() => {
-  if (Object.keys(tree.value).length) {
-    currentItem.value = treeStore.getItem(
-      tree.value,
-      String(route.params.key).split("_")
+  if (route.query.owner === sessionStorage.getItem("uid")) {
+    currentItem.value = getCurrentNode(
+      route.query.owner,
+      tree,
+      route.params.key
+    );
+  } else {
+    currentItem.value = getCurrentNode(
+      route.query.owner,
+      sharedTrees,
+      route.params.key
     );
   }
 });
+
 watch(
   () => tree.value,
   () => {
-    currentItem.value = treeStore.getItem(
-      tree.value,
-      String(route.params.key).split("_")
-    );
+    if (route.query.owner === sessionStorage.getItem("uid")) {
+      currentItem.value = getCurrentNode(
+        route.query.owner,
+        tree,
+        route.params.key
+      );
+    }
   }
 );
+
+watch(
+  () => sharedTrees.value,
+  () => {
+    if (route.query.owner !== sessionStorage.getItem("uid")) {
+      currentItem.value = getCurrentNode(
+        route.query.owner,
+        sharedTrees,
+        route.params.key
+      );
+    }
+  }
+);
+
 watch(
   () => route.params.key,
   () => {
-    currentItem.value = treeStore.getItem(
-      tree.value,
-      String(route.params.key).split("_")
-    );
+    if (route.query.owner === sessionStorage.getItem("uid")) {
+      currentItem.value = getCurrentNode(
+        route.query.owner,
+        tree,
+        route.params.key
+      );
+    } else {
+      currentItem.value = getCurrentNode(
+        route.query.owner,
+        sharedTrees,
+        route.params.key
+      );
+    }
   }
 );
 </script>
@@ -133,9 +197,8 @@ watch(
     :dialog-type="dialogType"
     :is-edit="isEdit"
   />
-
   <div class="q-pa-sm bg-white full-height">
-    <div v-if="currentItem">
+    <div v-if="currentItem && Object.keys(currentItem).length">
       <NodeBreadcrumbs />
       <div class="row justify-between bg-white">
         <div class="row items-center">
@@ -149,6 +212,12 @@ watch(
         </div>
 
         <div>
+          <q-btn
+            @click="shareNode"
+            label="share"
+            class="q-mr-sm"
+            color="primary"
+          />
           <q-btn
             @click="() => showDialog(DialogTypes.item, false)"
             :label="$t('sectionPage.addItem')"
@@ -191,7 +260,7 @@ watch(
       >
         <template v-slot:body="props">
           <q-tr
-            @click="() => onRowClick(props.row.to)"
+            @click="() => onRowClick(props.row)"
             :props="props"
             class="text-subtitle1 cursor-pointer"
           >

@@ -14,11 +14,13 @@ import { useQuasar } from "quasar";
 import GearsLoader from "@/components/GearsLoader.vue";
 import { capitalizeFirstLetter } from "@/functions/capitalizeFirstLetter";
 import { i18n } from "@/main";
+import { getCurrentNode } from "@/functions/getCurrentNode";
 
 const $q = useQuasar();
 const route = useRoute();
 const treeStore = useTreeNodes();
 const tree = computed(() => treeStore.getTree);
+const sharedTrees = computed(() => treeStore.getSharedTrees);
 const currentItem = ref<INode>();
 const dialogVisibility = ref(false);
 const newQuantity = ref(0);
@@ -76,37 +78,65 @@ function removeNode(removedNodeName): void {
 }
 
 onMounted(() => {
-  if (Object.keys(tree.value).length) {
-    currentItem.value = treeStore.getItem(
-      tree.value,
-      String(route.params.key).split("_")
+  if (route.query.owner === sessionStorage.getItem("uid")) {
+    currentItem.value = getCurrentNode(
+      route.query.owner,
+      tree,
+      route.params.key
     );
-    if (currentItem.value) {
-      newQuantity.value = currentItem.value.quantity;
-    }
+    newQuantity.value = currentItem.value.quantity;
+  } else {
+    currentItem.value = getCurrentNode(
+      route.query.owner,
+      sharedTrees,
+      route.params.key
+    );
   }
 });
+
 watch(
   () => tree.value,
   () => {
-    currentItem.value = treeStore.getItem(
-      tree.value,
-      String(route.params.key).split("_")
-    );
-    if (currentItem.value) {
-      newQuantity.value = currentItem.value.quantity;
+    if (route.query.owner === sessionStorage.getItem("uid")) {
+      currentItem.value = getCurrentNode(
+        route.query.owner,
+        tree,
+        route.params.key
+      );
     }
+    newQuantity.value = currentItem.value.quantity;
   }
 );
-
+watch(
+  () => sharedTrees.value,
+  () => {
+    if (route.query.owner !== sessionStorage.getItem("uid")) {
+      currentItem.value = getCurrentNode(
+        route.query.owner,
+        sharedTrees,
+        route.params.key
+      );
+    }
+    newQuantity.value = currentItem.value.quantity;
+  }
+);
 watch(
   () => route.params.key,
   () => {
-    currentItem.value = treeStore.getItem(
-      tree.value,
-      String(route.params.key).split("_")
-    );
-    newQuantity.value = currentItem.value.quantity;
+    if (route.query.owner === sessionStorage.getItem("uid")) {
+      currentItem.value = getCurrentNode(
+        route.query.owner,
+        tree,
+        route.params.key
+      );
+      newQuantity.value = currentItem.value.quantity;
+    } else {
+      currentItem.value = getCurrentNode(
+        route.query.owner,
+        sharedTrees,
+        route.params.key
+      );
+    }
   }
 );
 

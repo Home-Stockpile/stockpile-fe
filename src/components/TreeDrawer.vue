@@ -78,6 +78,9 @@ function cutString(string: string, number: number): string {
   }
   return string.slice(0, number) + "...";
 }
+function getOwner() {
+  return sessionStorage.getItem("uid");
+}
 </script>
 
 <template>
@@ -158,7 +161,10 @@ function cutString(string: string, number: number): string {
           <RouterLink
             @click.stop=""
             class="row justify-between full-width"
-            :to="item.node.to"
+            :to="{
+              path: item.node.to,
+              query: { owner: getOwner() },
+            }"
           >
             <div class="row items-center">
               <q-img
@@ -180,8 +186,9 @@ function cutString(string: string, number: number): string {
               <q-icon v-else name="favorite_border" />
             </div>
           </RouterLink>
-        </template> </q-tree
-    ></q-scroll-area>
+        </template>
+      </q-tree>
+    </q-scroll-area>
   </q-drawer>
 </template>
 
