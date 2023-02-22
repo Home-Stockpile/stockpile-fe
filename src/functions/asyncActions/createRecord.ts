@@ -14,7 +14,7 @@ export async function createRecord() {
   try {
     const resp = await getDoc(rootRef);
     if (!resp.data()) {
-      await setDoc(rootRef, { key: "0", to: "/" });
+      await setDoc(rootRef, { key: "0", to: "/", label: "Home" });
     }
   } catch (e) {
     console.log(e);
