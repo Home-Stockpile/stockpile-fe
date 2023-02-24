@@ -14,6 +14,7 @@ import { i18n } from "@/main";
 import { doc, getFirestore, setDoc } from "firebase/firestore";
 import { getOwner } from "@/functions/getOwner";
 import { getCurrentNode } from "@/functions/getCurrentNode";
+import ShareNodeDialog from "@/components/ShareNodeDialog.vue";
 
 const route = useRoute();
 const treeStore = useTreeNodes();
@@ -23,6 +24,7 @@ const tree = computed(() => treeStore.getTree);
 const sharedTrees = computed(() => treeStore.getSharedTrees);
 const dialogType = ref<AddDialog>(DialogTypes.section);
 const currentItem = ref<INode>();
+const shareNodeVisibility = ref(false);
 const columns = [
   {
     label: "icon",
@@ -109,10 +111,18 @@ function onRowClick(item) {
   });
 }
 
-async function shareNode() {
-  //adding share ability will be in next task
+function hideShareNodeForm(): void {
+  shareNodeVisibility.value = false;
 }
-
+function showShareNodeForm(): void {
+  shareNodeVisibility.value = true;
+}
+function checkRoles() {
+  if (currentItem.value.roles[sessionStorage.getItem("uid")] === "owner") {
+    return true;
+  }
+  return false;
+}
 onMounted(() => {
   if (route.query.owner === sessionStorage.getItem("uid")) {
     currentItem.value = getCurrentNode(
@@ -182,6 +192,11 @@ watch(
     :dialog-type="dialogType"
     :is-edit="isEdit"
   />
+  <ShareNodeDialog
+    v-if="shareNodeVisibility"
+    :current-item="currentItem"
+    @hide-form="hideShareNodeForm"
+  />
   <div class="q-pa-sm bg-white full-height">
     <div v-if="currentItem && Object.keys(currentItem).length">
       <NodeBreadcrumbs />
@@ -196,9 +211,9 @@ watch(
           <div class="q-ml-sm">{{ currentItem.label }}</div>
         </div>
 
-        <div>
+        <div v-if="checkRoles">
           <q-btn
-            @click="shareNode"
+            @click="showShareNodeForm"
             label="share"
             class="q-mr-sm"
             color="primary"

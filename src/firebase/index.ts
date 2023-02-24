@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
-
+console.log("gjjghjgh");
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_API_KEY,
   authDomain: "home-stockpile-be.firebaseapp.com",
@@ -14,4 +14,3 @@ const firebaseConfig = {
 
 export const firebaseApp = initializeApp(firebaseConfig);
 const storage = getFirestore(firebaseApp);
-connectFirestoreEmulator(storage, "localhost", 8080);

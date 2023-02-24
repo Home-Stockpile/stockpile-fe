@@ -2,7 +2,7 @@ import { INode } from "@/types/treeNodes";
 
 export function createDataTree(dataset: INode[]): INode[] {
   const hashTable = Object.create(null);
-  dataset.forEach((aData) => (hashTable[aData.key] = { ...aData, items: [] }));
+  dataset.forEach((aData) => (hashTable[aData.key] = { ...aData }));
   const dataTree = [];
   dataset.forEach((aData) => {
     if (parentKey(aData.key))
